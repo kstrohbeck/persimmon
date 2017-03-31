@@ -104,3 +104,13 @@ def test_zippers_are_not_equal_with_different_index():
 def test_eq_returns_false_against_non_zipper():
     zipper = Zipper()
     assert zipper != []
+
+
+def test_repr_correct_for_empty_zipper():
+    zipper = Zipper()
+    assert repr(zipper) == '[]'
+
+
+def test_repr_correct_for_zipper_with_index():
+    zipper = Zipper.from_list([1, 2, 3], 1)
+    assert repr(zipper) == '[1, <2>, 3]'
