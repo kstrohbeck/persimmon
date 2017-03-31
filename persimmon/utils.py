@@ -50,3 +50,13 @@ class Zipper:
         :return: the current item
         """
         return self._items[self.index]
+
+    @property
+    def is_at_end(self):
+        """Indicates if the focus of the zipper is past all the elements.
+
+        Trivially True if the zipper has no elements.
+
+        :return: if the focus is at the end
+        """
+        return self.index == len(self)
