@@ -1,3 +1,4 @@
+import collections
 import copy
 
 
@@ -197,7 +198,7 @@ class Zipper:
         return new_start
 
 
-class RewindIterator:
+class RewindIterator(collections.Iterator):
     def __init__(self, iterable):
         pass
 
