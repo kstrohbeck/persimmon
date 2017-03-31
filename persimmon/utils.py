@@ -14,3 +14,17 @@ class Zipper:
         :return: the zipper's length
         """
         return len(self._items)
+
+    def __repr__(self):
+        """Return a string representation of the zipper.
+
+        :return: a string representation
+        """
+        def elem_str(index, elem):
+            if index == self.index:
+                return '<{}>'.format(repr(elem))
+            else:
+                return repr(elem)
+
+        elem_strs = (elem_str(i, elem) for i, elem in enumerate(self._items))
+        return '[{}]'.format(', '.join(elem_strs))
