@@ -75,7 +75,7 @@ def test_delete_up_to_deletes_up_to_given_if_it_is_first():
     zipper = Zipper.from_list([1, 2, 3])
     zipper.index = 3
     zipper.delete_up_to(2)
-    assert zipper == Zipper.from_list([3])
+    assert zipper == Zipper.from_list([3], 1)
 
 
 def test_delete_up_to_deletes_up_to_length_if_it_is_first():
