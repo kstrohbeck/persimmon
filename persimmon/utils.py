@@ -7,3 +7,10 @@ class Zipper:
         """Create a new, empty zipper."""
         self._items = []
         self.index = 0
+
+    def __len__(self):
+        """Return the length of the zipper.
+
+        :return: the zipper's length
+        """
+        return len(self._items)
