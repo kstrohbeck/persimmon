@@ -198,7 +198,7 @@ class Zipper:
 
 
 class RewindIterator:
-    def __init__(self, iterator):
+    def __init__(self, iterable):
         pass
 
     def __next__(self):
