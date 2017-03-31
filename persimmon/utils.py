@@ -203,7 +203,7 @@ class RewindIterator(collections.Iterator):
         pass
 
     def __next__(self):
-        pass
+        raise StopIteration
 
     def rewind_point(self):
         pass
