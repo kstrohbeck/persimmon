@@ -195,3 +195,7 @@ class Zipper:
         self._items = self._items[new_start:]
         self.index -= new_start
         return new_start
+
+
+class RewindIterator:
+    pass
