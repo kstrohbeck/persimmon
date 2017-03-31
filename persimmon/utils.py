@@ -1,3 +1,6 @@
+import copy
+
+
 class Zipper:
     """List-like data structure that maintains a position, allowing for
     efficient lookup and modification at the cursor.
@@ -60,6 +63,17 @@ class Zipper:
         :return: if the focus is at the end
         """
         return self.index == len(self)
+
+    @classmethod
+    def from_list(cls, items):
+        """Creates a zipper from a list, with the index set to 0.
+
+        :param items: the list of items to turn into a zipper
+        :return: the created zipper
+        """
+        zipper = cls()
+        zipper._items = copy.copy(items)
+        return zipper
 
     def append(self, value):
         """Append a value to the end of the zipper.
