@@ -1,3 +1,5 @@
+import pytest
+
 from persimmon.utils import Zipper
 
 
@@ -26,6 +28,12 @@ def test_cur_item_gets_element_at_index():
     zipper = Zipper.from_list([1, 2, 3])
     zipper.index = 1
     assert zipper.cur_item == 2
+
+
+def test_index_raises_if_index_is_greater_than_length():
+    zipper = Zipper()
+    with pytest.raises(IndexError):
+        zipper.index = 4
 
 
 def test_append_increases_length_by_one():
