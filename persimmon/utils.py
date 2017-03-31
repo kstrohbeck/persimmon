@@ -32,6 +32,17 @@ class Zipper:
         elem_strs = (elem_str(i, elem) for i, elem in enumerate(self._items))
         return '[{}]'.format(', '.join(elem_strs))
 
+    def __eq__(self, other):
+        """Returns if this zipper is equal to another object.
+
+        Zippers are equal if their contents are the same, and their focus is
+        on the same object.
+
+        :param other: the object to check equality against
+        :return: whether the zipper and other object are equal
+        """
+        return self._items == other._items and self._index == other._index
+
     @property
     def index(self):
         """The current index focused on by the zipper."""
