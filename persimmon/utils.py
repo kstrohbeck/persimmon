@@ -6,7 +6,7 @@ class Zipper:
     def __init__(self):
         """Create a new, empty zipper."""
         self._items = []
-        self.index = 0
+        self._index = 0
 
     def __len__(self):
         """Return the length of the zipper.
@@ -28,6 +28,17 @@ class Zipper:
 
         elem_strs = (elem_str(i, elem) for i, elem in enumerate(self._items))
         return '[{}]'.format(', '.join(elem_strs))
+
+    @property
+    def index(self):
+        """The current index focused on by the zipper."""
+        return self._index
+
+    @index.setter
+    def index(self, new_index):
+        if new_index > len(self):
+            raise IndexError
+        self._index = new_index
 
     @property
     def cur_item(self):
