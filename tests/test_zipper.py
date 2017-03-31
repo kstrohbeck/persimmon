@@ -83,3 +83,24 @@ def test_delete_up_to_deletes_up_to_length_if_it_is_first():
     zipper.index = 3
     zipper.delete_up_to(4)
     assert zipper == Zipper()
+
+
+def test_empty_zipper_is_equal_to_empty_zipper():
+    zipper = Zipper()
+    assert zipper == Zipper()
+
+
+def test_zippers_are_equal_with_same_content_and_index():
+    zipper = Zipper.from_list([1, 2, 3])
+    assert zipper == Zipper.from_list([1, 2, 3])
+
+
+def test_zippers_are_not_equal_with_different_index():
+    zipper = Zipper.from_list([1, 2, 3])
+    zipper.index = 1
+    assert zipper != Zipper.from_list([1, 2, 3])
+
+
+def test_eq_returns_false_against_non_zipper():
+    zipper = Zipper()
+    assert zipper != []
