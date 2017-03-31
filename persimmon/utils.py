@@ -60,3 +60,10 @@ class Zipper:
         :return: if the focus is at the end
         """
         return self.index == len(self)
+
+    def append(self, value):
+        """Append a value to the end of the zipper.
+
+        :param value: the value to append
+        """
+        self._items.append(value)
