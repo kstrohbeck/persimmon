@@ -67,3 +67,11 @@ class Zipper:
         :param value: the value to append
         """
         self._items.append(value)
+
+    def advance(self):
+        """Advance the focus to the right by 1.
+
+        If the focus is at the end of the zipper, it won't move.
+        """
+        if not self.is_at_end:
+            self.index += 1
