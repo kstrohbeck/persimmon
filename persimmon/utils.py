@@ -28,3 +28,14 @@ class Zipper:
 
         elem_strs = (elem_str(i, elem) for i, elem in enumerate(self._items))
         return '[{}]'.format(', '.join(elem_strs))
+
+    @property
+    def cur_item(self):
+        """Return the item focused on by the zipper.
+
+        If there isn't a focused element (because the zipper has zero length),
+        this method will raise an IndexError.
+
+        :return: the current item
+        """
+        return self._items[self.index]
