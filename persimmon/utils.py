@@ -79,14 +79,16 @@ class Zipper:
         return self.index == len(self)
 
     @classmethod
-    def from_list(cls, items):
-        """Creates a zipper from a list, with the index set to 0.
+    def from_list(cls, items, index=0):
+        """Creates a zipper from a list with an optional index value.
 
         :param items: the list of items to turn into a zipper
+        :param index: the index of the zipper; defaults to 0.
         :return: the created zipper
         """
         zipper = cls()
         zipper._items = copy.copy(items)
+        zipper.index = index
         return zipper
 
     def append(self, value):
