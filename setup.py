@@ -15,5 +15,5 @@ setup(
     description='Idiomatic parser combinators, Python-style.',
     long_description=long_description,
     url='https://github.com/kstrohbeck/persimmon',
-    packages=[],
+    packages=['persimmon'],
 )
