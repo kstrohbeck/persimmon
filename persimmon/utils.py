@@ -98,6 +98,6 @@ class Zipper:
         :return: the number of deleted elements
         """
         new_start = min(index, self.index)
-        self._items = self._items[new_start]
+        self._items = self._items[new_start:]
         self.index -= new_start
         return new_start
