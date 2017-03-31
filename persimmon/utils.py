@@ -41,6 +41,9 @@ class Zipper:
         :param other: the object to check equality against
         :return: whether the zipper and other object are equal
         """
+        if not isinstance(other, Zipper):
+            return False
+
         return self._items == other._items and self._index == other._index
 
     @property
