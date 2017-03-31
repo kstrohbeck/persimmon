@@ -198,4 +198,17 @@ class Zipper:
 
 
 class RewindIterator:
-    pass
+    def __init__(self, iterator):
+        pass
+
+    def __next__(self):
+        pass
+
+    def rewind_point(self):
+        pass
+
+    def rewind_to(self, point):
+        pass
+
+    def forget(self, point):
+        pass
