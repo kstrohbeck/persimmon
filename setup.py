@@ -16,4 +16,6 @@ setup(
     long_description=long_description,
     url='https://github.com/kstrohbeck/persimmon',
     packages=['persimmon'],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
 )
