@@ -75,3 +75,15 @@ class Zipper:
         """
         if not self.is_at_end:
             self.index += 1
+
+    def delete_up_to(self, index):
+        """Delete elements of the zipper up to the earliest of the given index,
+        the focused index, and the end of the list.
+
+        :param index: the index to delete to
+        :return: the number of deleted elements
+        """
+        new_start = min(index, self.index)
+        self._items = self._items[new_start]
+        self.index -= new_start
+        return new_start
