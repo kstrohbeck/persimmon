@@ -7,7 +7,12 @@ class Zipper:
     """
 
     def __init__(self):
-        """Create a new, empty zipper."""
+        """Create a new, empty zipper.
+
+        >>> zipper = Zipper()
+        >>> zipper
+        []
+        """
         self._items = []
         self._index = 0
 
@@ -15,6 +20,13 @@ class Zipper:
         """Return the length of the zipper.
 
         :return: the zipper's length
+
+        >>> zipper = Zipper()
+        >>> len(zipper)
+        0
+        >>> zipper.append(1)
+        >>> len(zipper)
+        1
         """
         return len(self._items)
 
@@ -22,6 +34,10 @@ class Zipper:
         """Return a string representation of the zipper.
 
         :return: a string representation
+
+        >>> zipper = Zipper.from_list([1, 2, 3])
+        >>> repr(zipper)
+        '[<1>, 2, 3]'
         """
         def elem_str(index, elem):
             if index == self.index:
@@ -40,6 +56,14 @@ class Zipper:
 
         :param other: the object to check equality against
         :return: whether the zipper and other object are equal
+
+        >>> zipper = Zipper()
+        >>> zipper == Zipper()
+        True
+        >>> zipper == Zipper.from_list([1])
+        False
+        >>> Zipper.from_list([1, 2, 3], 1) == Zipper.from_list([1, 2, 3], 2)
+        False
         """
         if not isinstance(other, Zipper):
             return False
@@ -48,7 +72,17 @@ class Zipper:
 
     @property
     def index(self):
-        """The current index focused on by the zipper."""
+        """The current index focused on by the zipper.
+
+        :return: the current index
+
+        >>> zipper = Zipper.from_list([1, 2, 3])
+        >>> zipper.index
+        0
+        >>> zipper.advance()
+        >>> zipper.index
+        1
+        """
         return self._index
 
     @index.setter
@@ -65,6 +99,13 @@ class Zipper:
         this method will raise an IndexError.
 
         :return: the current item
+
+        >>> zipper = Zipper.from_list([1, 2, 3])
+        >>> zipper.cur_item
+        1
+        >>> zipper.advance()
+        >>> zipper.cur_item
+        2
         """
         return self._items[self.index]
 
@@ -75,6 +116,13 @@ class Zipper:
         Trivially True if the zipper has no elements.
 
         :return: if the focus is at the end
+
+        >>> zipper = Zipper.from_list([1, 2, 3])
+        >>> zipper.is_at_end
+        False
+        >>> zipper.index = 3
+        >>> zipper.is_at_end
+        True
         """
         return self.index == len(self)
 
@@ -85,6 +133,9 @@ class Zipper:
         :param items: the list of items to turn into a zipper
         :param index: the index of the zipper; defaults to 0.
         :return: the created zipper
+
+        >>> Zipper.from_list([1, 2, 3])
+        [<1>, 2, 3]
         """
         zipper = cls()
         zipper._items = copy.copy(items)
@@ -95,6 +146,16 @@ class Zipper:
         """Append a value to the end of the zipper.
 
         :param value: the value to append
+
+        >>> zipper = Zipper()
+        >>> zipper
+        []
+        >>> zipper.append(1)
+        >>> zipper
+        [<1>]
+        >>> zipper.append(2)
+        >>> zipper
+        [<1>, 2]
         """
         self._items.append(value)
 
@@ -102,16 +163,33 @@ class Zipper:
         """Advance the focus to the right by 1.
 
         If the focus is at the end of the zipper, it won't move.
+
+        >>> zipper = Zipper.from_list([1, 2, 3])
+        >>> zipper
+        [<1>, 2, 3]
+        >>> zipper.advance()
+        >>> zipper
+        [1, <2>, 3]
         """
         if not self.is_at_end:
             self.index += 1
 
     def delete_up_to(self, index):
         """Delete elements of the zipper up to the earliest of the given index,
-        the focused index, and the end of the list.
+        the focused index, and the end of the list, returning how many elements
+        were deleted.
 
         :param index: the index to delete to
         :return: the number of deleted elements
+
+        >>> zipper = Zipper.from_list([1, 2, 3])
+        >>> zipper.index = 2
+        >>> zipper
+        [1, 2, <3>]
+        >>> zipper.delete_up_to(1)
+        1
+        >>> zipper
+        [2, <3>]
         """
         new_start = min(index, self.index)
         self._items = self._items[new_start:]
