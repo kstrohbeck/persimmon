@@ -90,3 +90,14 @@ class AttemptParser(Parser):
 
     def expected(self):
         return self._parser.expected()
+
+
+class DigitParser(Parser):
+    def do_parse(self, iterator):
+        value = next(iterator)
+        if str.isdigit(value):
+            return Success(int(value))
+        return Failure(value)
+
+    def expected(self):
+        return ['digit']
