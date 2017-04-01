@@ -248,16 +248,38 @@ class RewindPoint:
 
 class RewindIterator(collections.Iterator):
     def __init__(self, iterable):
-        pass
+        self._iterator = iter(iterable)
+        self._store = Zipper()
+        self._points = set()
 
     def __next__(self):
-        raise StopIteration
+        if self._store.is_at_end:
+            value = next(self._iterator)
+            if not len(self._store) > 0:
+                return value
+            self._store.append(value)
+        else:
+            value = self._store.cur_item
+        self._store.advance()
+        if not len(self._store) > 0 and self._store.is_at_end:
+            self._store = Zipper()
+        return value
 
     def rewind_point(self):
-        pass
+        point = RewindPoint(self, self._store.index)
+        self._points.add(point)
+        return point
 
     def rewind_to(self, point):
-        pass
+        self._store.index = point.index
 
     def forget(self, point):
-        pass
+        self._points.remove(point)
+        if len(self._points) > 0 and point.index == 0:
+            earliest = None
+            for point in self._points:
+                if earliest is None or point.index < earliest.index:
+                    earliest = point
+            new_start = self._store.delete_up_to(earliest.index)
+            for point in self._points:
+                point.index -= new_start
