@@ -1,12 +1,11 @@
 from persimmon import utils
 
 
-class Expected:
-    pass
-
-
 class Parser:
     def do_parse(self, iterator):
+        pass
+
+    def expected(self):
         pass
 
     def parse(self, iterable):
@@ -24,3 +23,6 @@ class SuccessParser(Parser):
 
     def do_parse(self, iterator):
         return self._value
+
+    def expected(self):
+        return []
