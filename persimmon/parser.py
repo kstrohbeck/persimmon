@@ -130,3 +130,43 @@ class EndOfFileParser(Parser):
 
     def expected(self):
         return ['end of file']
+
+
+class ChoiceParser(Parser):
+    def __init__(self, *parsers):
+        self._parsers = parsers
+
+    def do_parse(self, iterator):
+        first_success = None
+        last_failure = None
+        expected = ()
+        for parser in self._parsers:
+            result = parser.do_parse(iterator)
+            if result.consumed:
+                return result
+            if isinstance(result, Success):
+                if first_success is None:
+                    first_success = result
+            else:
+                last_failure = result
+            expected += result.expected
+        if first_success is not None:
+            first_success.expected = expected
+            return first_success
+        last_failure.expected = expected
+        return last_failure
+
+    def expected(self):
+        return tuple(map(lambda p: p.expected(), self._parsers))
+
+    def prepend(self, parser):
+        return ChoiceParser(parser, *self._parsers)
+
+    def pre_extend(self, parsers):
+        return ChoiceParser(*parsers, *self._parsers)
+
+    def append(self, parser):
+        return ChoiceParser(*self._parsers, parser)
+
+    def post_extend(self, parsers):
+        return ChoiceParser(*self._parsers, *parsers)
