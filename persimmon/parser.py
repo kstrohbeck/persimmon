@@ -180,3 +180,26 @@ class ChoiceParser(Parser):
 
     def post_extend(self, parsers):
         return ChoiceParser(*self._parsers, *parsers)
+
+
+class ChainParser(Parser):
+    def __init__(self, *parsers):
+        self._parsers = parsers
+
+    def do_parse(self, iterator):
+        pass
+
+    def expected(self):
+        pass
+
+    def prepend(self, parser):
+        return ChainParser(parser, *self._parsers)
+
+    def pre_extend(self, parsers):
+        return ChainParser(*parsers, *self._parsers)
+
+    def append(self, parser):
+        return ChainParser(*self._parsers, parser)
+
+    def post_extend(self, parsers):
+        return ChainParser(*self._parsers, *parsers)
