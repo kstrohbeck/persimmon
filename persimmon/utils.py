@@ -1,4 +1,6 @@
+import collections
 import copy
+import functools
 
 
 class Zipper:
@@ -195,3 +197,88 @@ class Zipper:
         self._items = self._items[new_start:]
         self.index -= new_start
         return new_start
+
+
+@functools.total_ordering
+class RewindPoint:
+    """Represents a point that a specific RewindIterator can be rewound to."""
+
+    def __init__(self, rewinder, index):
+        """Create a new rewind point.
+
+        :param rewinder: the rewinder this point belongs to
+        :param index: the index of the rewind point
+        """
+        self._rewinder = rewinder
+        self.index = index
+
+    def __enter__(self):
+        """Called when the rewind point is created in a with statement.
+
+        :return: this point
+        """
+        return self
+
+    def __exit__(self, *_):
+        """Called when the rewind point exits the with statement it was created
+        in.
+        """
+        self._rewinder.forget(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, RewindPoint):
+            raise TypeError
+
+        return self._rewinder == other._rewinder and self.index == other.index
+
+    def __lt__(self, other):
+        """Indicates if this point occurred earlier than the other point.
+
+        Raises a TypeError if other is not a RewindPoint.
+
+        :param other: the other rewind point
+        :return: if this point is earlier than the other
+        """
+        if not isinstance(other, RewindPoint):
+            raise TypeError
+
+        return self._rewinder == other._rewinder and self.index < other.index
+
+
+class RewindIterator(collections.Iterator):
+    def __init__(self, iterable):
+        self._iterator = iter(iterable)
+        self._store = Zipper()
+        self._points = []
+
+    def __next__(self):
+        if self._store.is_at_end:
+            value = next(self._iterator)
+            if not len(self._points) > 0:
+                return value
+            self._store.append(value)
+        else:
+            value = self._store.cur_item
+        self._store.advance()
+        if not len(self._points) > 0 and self._store.is_at_end:
+            self._store = Zipper()
+        return value
+
+    def rewind_point(self):
+        point = RewindPoint(self, self._store.index)
+        self._points.append(point)
+        return point
+
+    def rewind_to(self, point):
+        self._store.index = point.index
+
+    def forget(self, point):
+        self._points.remove(point)
+        if len(self._points) > 0 and point.index == 0:
+            earliest = None
+            for point in self._points:
+                if earliest is None or point.index < earliest.index:
+                    earliest = point
+            new_start = self._store.delete_up_to(earliest.index)
+            for point in self._points:
+                point.index -= new_start
