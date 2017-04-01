@@ -72,28 +72,6 @@ class RawSequenceParser(Parser):
         return [str(self._seq)]
 
 
-class SequenceParser(Parser):
-    def __init__(self, seq):
-        self._seq = seq
-
-    def do_parse(self, iterator):
-        with iterator.rewind_point() as point:
-            accum = []
-            try:
-                for s in iter(self._seq):
-                    value = next(iterator)
-                    if s != value:
-                        raise StopIteration
-                    accum.append(value)
-            except StopIteration:
-                iterator.rewind(point)
-                # TODO: return ??? error
-            return accum
-
-    def expected(self):
-        return [str(self._seq)]
-
-
 class AttemptParser(Parser):
     def __init__(self, parser):
         self._parser = parser
