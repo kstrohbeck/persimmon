@@ -116,8 +116,8 @@ class RawDigitParser(Parser):
     def do_parse(self, iterator):
         value = next(iterator)
         if str.isdigit(value):
-            return Success(int(value), consumed=True)
-        return Failure(value, consumed=True)
+            return Success(int(value), consumed=True, expected=('digit',))
+        return Failure(value, consumed=True, expected=('digit',))
 
     def expected(self):
         return ['digit']
