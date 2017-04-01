@@ -30,6 +30,10 @@ class Parser:
     def any_elem():
         return AnyElemParser()
 
+    @staticmethod
+    def sequence(seq):
+        return AttemptParser(RawSequenceParser(seq))
+
 
 class SuccessParser(Parser):
     def __init__(self, value):
