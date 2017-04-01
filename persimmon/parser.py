@@ -108,3 +108,17 @@ class RawDigitParser(Parser):
 
     def expected(self):
         return ['digit']
+
+
+class EndOfFileParser(Parser):
+    def do_parse(self, iterator):
+        with iterator.rewind_point() as point:
+            try:
+                value = next(iterator)
+                iterator.rewind_to(point)
+                return Failure(value)
+            except StopIteration:
+                return Success(None)
+
+    def expected(self):
+        return ['end of file']
