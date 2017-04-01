@@ -254,13 +254,13 @@ class RewindIterator(collections.Iterator):
     def __next__(self):
         if self._store.is_at_end:
             value = next(self._iterator)
-            if not len(self._points) > 0:
+            if not self._points:
                 return value
             self._store.append(value)
         else:
             value = self._store.cur_item
         self._store.advance()
-        if not len(self._points) > 0 and self._store.is_at_end:
+        if not self._points and self._store.is_at_end:
             self._store = Zipper()
         return value
 
@@ -274,7 +274,7 @@ class RewindIterator(collections.Iterator):
 
     def forget(self, point):
         self._points.remove(point)
-        if len(self._points) > 0 and point.index == 0:
+        if self._points and point.index == 0:
             earliest = None
             for point in self._points:
                 if earliest is None or point.index < earliest.index:
