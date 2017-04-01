@@ -95,7 +95,7 @@ class AttemptParser(Parser):
         return self._parser.expected()
 
 
-class DigitParser(Parser):
+class RawDigitParser(Parser):
     def do_parse(self, iterator):
         value = next(iterator)
         if str.isdigit(value):
