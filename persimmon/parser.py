@@ -2,19 +2,23 @@ from persimmon import utils
 
 
 class Result:
-    def __init__(self, consumed=False, expected=()):
+    def __init__(self, consumed, expected):
         self.consumed = consumed
         self.expected = expected
 
 
 class Success(Result):
-    def __init__(self, value, consumed=False, expected=()):
+    def __init__(self, value, consumed=False, expected=None):
+        if expected is None:
+            expected = []
         super().__init__(consumed, expected)
         self.value = value
 
 
 class Failure(Result):
-    def __init__(self, unexpected, consumed=False, expected=()):
+    def __init__(self, unexpected, consumed=False, expected=None):
+        if expected is None:
+            expected = []
         super().__init__(consumed, expected)
         self.unexpected = unexpected
 
@@ -72,9 +76,9 @@ class AnyElemParser(Parser):
     def do_parse(self, iterator):
         try:
             value = next(iterator)
-            return Success(value, consumed=True, expected=('any element',))
+            return Success(value, consumed=True, expected=['any element'])
         except StopIteration:
-            return Failure('end of input', expected=('any element',))
+            return Failure('end of input', expected=['any element'])
 
     def expected(self):
         return ['any element']
@@ -90,8 +94,8 @@ class RawSequenceParser(Parser):
             value = next(iterator)
             accum.append(value)
             if s != value:
-                return Failure(accum, consumed=True, expected=(str(self._seq),))
-        return Success(accum, consumed=True, expected=(str(self._seq),))
+                return Failure(accum, consumed=True, expected=[str(self._seq)])
+        return Success(accum, consumed=True, expected=[str(self._seq)])
 
     def expected(self):
         return [str(self._seq)]
@@ -111,7 +115,7 @@ class AttemptParser(Parser):
                 return result
             except StopIteration:
                 iterator.rewind_to(point)
-                return Failure('end of input')
+                return Failure('end of input', expected=self._parser.expected())
 
     def expected(self):
         return self._parser.expected()
@@ -121,8 +125,8 @@ class RawDigitParser(Parser):
     def do_parse(self, iterator):
         value = next(iterator)
         if str.isdigit(value):
-            return Success(int(value), consumed=True, expected=('digit',))
-        return Failure(value, consumed=True, expected=('digit',))
+            return Success(int(value), consumed=True, expected=['digit'])
+        return Failure(value, consumed=True, expected=['digit'])
 
     def expected(self):
         return ['digit']
@@ -134,7 +138,7 @@ class EndOfFileParser(Parser):
             try:
                 value = next(iterator)
                 iterator.rewind_to(point)
-                return Failure(value, expected=('end of file',))
+                return Failure(value, expected=['end of file'])
             except StopIteration:
                 return Success(None)
 
@@ -149,7 +153,7 @@ class ChoiceParser(Parser):
     def do_parse(self, iterator):
         first_success = None
         last_failure = None
-        expected = ()
+        expected = []
         for parser in self._parsers:
             result = parser.do_parse(iterator)
             if result.consumed:
@@ -159,7 +163,7 @@ class ChoiceParser(Parser):
                     first_success = result
             else:
                 last_failure = result
-            expected += result.expected
+            expected.append(result.expected)
         if first_success is not None:
             first_success.expected = expected
             return first_success
@@ -167,7 +171,7 @@ class ChoiceParser(Parser):
         return last_failure
 
     def expected(self):
-        return tuple(map(lambda p: p.expected(), self._parsers))
+        return [p.expected() for p in self._parsers]
 
     def __or__(self, other):
         if isinstance(other, ChoiceParser):
@@ -192,7 +196,16 @@ class ChainParser(Parser):
         self._parsers = parsers
 
     def do_parse(self, iterator):
-        pass
+        results = []
+        consumed = False
+        for parser in self._parsers:
+            result = parser.do_parse(iterator)
+            consumed = consumed or result.consumed
+            if isinstance(result, Failure):
+                result.consumed = consumed
+                return result
+            results.append(result.value)
+        return Success(results, consumed=consumed)
 
     def expected(self):
         pass
