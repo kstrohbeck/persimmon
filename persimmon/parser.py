@@ -60,6 +60,9 @@ class Parser:
     def digit():
         return AttemptParser(RawDigitParser())
 
+    def map(self, func):
+        return MapParser(self, func)
+
 
 class SuccessParser(Parser):
     def __init__(self, value):
@@ -226,3 +229,21 @@ class ChainParser(Parser):
 
     def post_extend(self, parsers):
         return ChainParser(*self._parsers, *parsers)
+
+
+class MapParser(Parser):
+    def __init__(self, parser, func, spread_args=False):
+        self._parser = parser
+        self._func = func
+        self._spread_args = spread_args
+
+    def do_parse(self, iterator):
+        result = self._parser.do_parse(iterator)
+        if isinstance(result, Success):
+            if self._spread_args:
+                result.value = self._func(*result.value)
+            else:
+                result.value = self._func(result.value)
+
+    def expected(self):
+        return self._parser.expected()
