@@ -2,19 +2,20 @@ from persimmon import utils
 
 
 class Result:
-    def __init__(self, consumed=False):
+    def __init__(self, consumed=False, expected=()):
         self.consumed = consumed
+        self.expected = expected
 
 
 class Success(Result):
-    def __init__(self, value, consumed=False):
-        super().__init__(consumed)
+    def __init__(self, value, consumed=False, expected=()):
+        super().__init__(consumed, expected)
         self.value = value
 
 
 class Failure(Result):
-    def __init__(self, unexpected, consumed=False):
-        super().__init__(consumed)
+    def __init__(self, unexpected, consumed=False, expected=()):
+        super().__init__(consumed, expected)
         self.unexpected = unexpected
 
 
@@ -61,9 +62,9 @@ class AnyElemParser(Parser):
     def do_parse(self, iterator):
         try:
             value = next(iterator)
-            return Success(value, consumed=True)
+            return Success(value, consumed=True, expected=('any element',))
         except StopIteration:
-            return Failure('end of input')
+            return Failure('end of input', expected=('any element',))
 
     def expected(self):
         return ['any element']
@@ -79,8 +80,8 @@ class RawSequenceParser(Parser):
             value = next(iterator)
             accum.append(value)
             if s != value:
-                return Failure(accum, consumed=True)
-        return Success(accum, consumed=True)
+                return Failure(accum, consumed=True, expected=(str(self._seq),))
+        return Success(accum, consumed=True, expected=(str(self._seq),))
 
     def expected(self):
         return [str(self._seq)]
@@ -123,7 +124,7 @@ class EndOfFileParser(Parser):
             try:
                 value = next(iterator)
                 iterator.rewind_to(point)
-                return Failure(value)
+                return Failure(value, expected=('end of file',))
             except StopIteration:
                 return Success(None)
 
