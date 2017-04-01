@@ -83,7 +83,10 @@ class AttemptParser(Parser):
     def do_parse(self, iterator):
         with iterator.rewind_point() as point:
             try:
-                return self._parser.do_parse(iterator)
+                result = self._parser.do_parse(iterator)
+                if isinstance(result, Failure):
+                    iterator.rewind(point)
+                return result
             except StopIteration:
                 iterator.rewind(point)
                 return Failure('end of input')
