@@ -16,6 +16,10 @@ class Parser:
     def success(value):
         return SuccessParser(value)
 
+    @staticmethod
+    def any_elem():
+        return AnyElemParser()
+
 
 class SuccessParser(Parser):
     def __init__(self, value):
