@@ -89,10 +89,10 @@ class AttemptParser(Parser):
             try:
                 result = self._parser.do_parse(iterator)
                 if isinstance(result, Failure):
-                    iterator.rewind(point)
+                    iterator.rewind_to(point)
                 return result
             except StopIteration:
-                iterator.rewind(point)
+                iterator.rewind_to(point)
                 return Failure('end of input')
 
     def expected(self):
