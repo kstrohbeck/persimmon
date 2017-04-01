@@ -225,11 +225,11 @@ class RewindPoint:
         """
         return self
 
-    def __exit__(self):
+    def __exit__(self, *_):
         """Called when the rewind point exits the with statement it was created
         in.
         """
-        self._rewinder.delete_point(self)
+        self._rewinder.forget(self)
 
     def __cmp__(self, other):
         """Compares this rewind point with another and returns the distance
