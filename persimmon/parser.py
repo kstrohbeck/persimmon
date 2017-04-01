@@ -35,6 +35,11 @@ class Parser:
             return other.prepend(self)
         return ChoiceParser(self, other)
 
+    def __and__(self, other):
+        if isinstance(other, ChainParser):
+            return other.prepend(self)
+        return ChainParser(self, other)
+
     @staticmethod
     def success(value):
         return SuccessParser(value)
@@ -191,6 +196,11 @@ class ChainParser(Parser):
 
     def expected(self):
         pass
+
+    def __and__(self, other):
+        if isinstance(other, ChainParser):
+            return self.post_extend(other)
+        return self.append(other)
 
     def prepend(self, parser):
         return ChainParser(parser, *self._parsers)
