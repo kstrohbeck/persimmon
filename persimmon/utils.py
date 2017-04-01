@@ -1,5 +1,6 @@
 import collections
 import copy
+import functools
 
 
 class Zipper:
@@ -198,6 +199,7 @@ class Zipper:
         return new_start
 
 
+@functools.total_ordering
 class RewindPoint:
     """Represents a point that a specific RewindIterator can be rewound to."""
 
@@ -208,15 +210,7 @@ class RewindPoint:
         :param index: the index of the rewind point
         """
         self._rewinder = rewinder
-        self._index = index
-
-    @property
-    def index(self):
-        """Gets the index of this rewind point in its rewinder.
-
-        :return: the point's index
-        """
-        return self._index
+        self.index = index
 
     def __enter__(self):
         """Called when the rewind point is created in a with statement.
@@ -231,43 +225,48 @@ class RewindPoint:
         """
         self._rewinder.forget(self)
 
-    def __cmp__(self, other):
-        """Compares this rewind point with another and returns the distance
-        between them.
+    def __eq__(self, other):
+        if not isinstance(other, RewindPoint):
+            raise TypeError
+
+        return self._rewinder == other._rewinder and self.index == other.index
+
+    def __lt__(self, other):
+        """Indicates if this point occurred earlier than the other point.
 
         Raises a TypeError if other is not a RewindPoint.
 
         :param other: the other rewind point
-        :return: the number of elements between them
+        :return: if this point is earlier than the other
         """
         if not isinstance(other, RewindPoint):
             raise TypeError
 
-        return other.index - self.index
+        return self._rewinder == other._rewinder and self.index < other.index
 
 
 class RewindIterator(collections.Iterator):
     def __init__(self, iterable):
         self._iterator = iter(iterable)
         self._store = Zipper()
-        self._points = set()
+        self._points = []
 
     def __next__(self):
         if self._store.is_at_end:
             value = next(self._iterator)
-            if not len(self._store) > 0:
+            if not len(self._points) > 0:
                 return value
             self._store.append(value)
         else:
             value = self._store.cur_item
         self._store.advance()
-        if not len(self._store) > 0 and self._store.is_at_end:
+        if not len(self._points) > 0 and self._store.is_at_end:
             self._store = Zipper()
         return value
 
     def rewind_point(self):
         point = RewindPoint(self, self._store.index)
-        self._points.add(point)
+        self._points.append(point)
         return point
 
     def rewind_to(self, point):
