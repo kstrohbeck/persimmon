@@ -198,6 +198,54 @@ class Zipper:
         return new_start
 
 
+class RewindPoint:
+    """Represents a point that a specific RewindIterator can be rewound to."""
+
+    def __init__(self, rewinder, index):
+        """Create a new rewind point.
+
+        :param rewinder: the rewinder this point belongs to
+        :param index: the index of the rewind point
+        """
+        self._rewinder = rewinder
+        self._index = index
+
+    @property
+    def index(self):
+        """Gets the index of this rewind point in its rewinder.
+
+        :return: the point's index
+        """
+        return self._index
+
+    def __enter__(self):
+        """Called when the rewind point is created in a with statement.
+
+        :return: this point
+        """
+        return self
+
+    def __exit__(self):
+        """Called when the rewind point exits the with statement it was created
+        in.
+        """
+        self._rewinder.delete_point(self)
+
+    def __cmp__(self, other):
+        """Compares this rewind point with another and returns the distance
+        between them.
+
+        Raises a TypeError if other is not a RewindPoint.
+
+        :param other: the other rewind point
+        :return: the number of elements between them
+        """
+        if not isinstance(other, RewindPoint):
+            raise TypeError
+
+        return other.index - self.index
+
+
 class RewindIterator(collections.Iterator):
     def __init__(self, iterable):
         pass
