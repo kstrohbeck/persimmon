@@ -55,6 +55,23 @@ class AnyElemParser(Parser):
         return ['any element']
 
 
+class RawSequenceParser(Parser):
+    def __init__(self, seq):
+        self._seq = seq
+
+    def do_parse(self, iterator):
+        accum = []
+        for s in iter(self._seq):
+            value = next(iterator)
+            accum.append(value)
+            if s != value:
+                return Failure(accum)
+        return Success(accum)
+
+    def expected(self):
+        return [str(self._seq)]
+
+
 class SequenceParser(Parser):
     def __init__(self, seq):
         self._seq = seq
