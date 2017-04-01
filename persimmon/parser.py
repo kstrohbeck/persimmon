@@ -1,13 +1,20 @@
 from persimmon import utils
 
 
-class Success:
-    def __init__(self, value):
+class Result:
+    def __init__(self, consumed=False):
+        self.consumed = consumed
+
+
+class Success(Result):
+    def __init__(self, value, consumed=False):
+        super().__init__(consumed)
         self.value = value
 
 
-class Failure:
-    def __init__(self, unexpected):
+class Failure(Result):
+    def __init__(self, unexpected, consumed=False):
+        super().__init__(consumed)
         self.unexpected = unexpected
 
 
@@ -44,7 +51,7 @@ class SuccessParser(Parser):
         self._value = value
 
     def do_parse(self, iterator):
-        return self._value
+        return Success(self._value)
 
     def expected(self):
         return []
@@ -54,10 +61,9 @@ class AnyElemParser(Parser):
     def do_parse(self, iterator):
         try:
             value = next(iterator)
-            return value
+            return Success(value, consumed=True)
         except StopIteration:
-            # TODO: return "end of input" error
-            pass
+            return Failure('end of input')
 
     def expected(self):
         return ['any element']
@@ -73,8 +79,8 @@ class RawSequenceParser(Parser):
             value = next(iterator)
             accum.append(value)
             if s != value:
-                return Failure(accum)
-        return Success(accum)
+                return Failure(accum, consumed=True)
+        return Success(accum, consumed=True)
 
     def expected(self):
         return [str(self._seq)]
@@ -90,6 +96,7 @@ class AttemptParser(Parser):
                 result = self._parser.do_parse(iterator)
                 if isinstance(result, Failure):
                     iterator.rewind_to(point)
+                result.consumed = False
                 return result
             except StopIteration:
                 iterator.rewind_to(point)
@@ -103,8 +110,8 @@ class RawDigitParser(Parser):
     def do_parse(self, iterator):
         value = next(iterator)
         if str.isdigit(value):
-            return Success(int(value))
-        return Failure(value)
+            return Success(int(value), consumed=True)
+        return Failure(value, consumed=True)
 
     def expected(self):
         return ['digit']
