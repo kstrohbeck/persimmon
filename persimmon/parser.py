@@ -1,6 +1,10 @@
 from persimmon import utils
 
 
+class Expected:
+    pass
+
+
 class Parser:
     def do_parse(self, iterator):
         pass
