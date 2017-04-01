@@ -1,6 +1,16 @@
 from persimmon import utils
 
 
+class Success:
+    def __init__(self, value):
+        self.value = value
+
+
+class Failure:
+    def __init__(self, unexpected):
+        self.unexpected = unexpected
+
+
 class Parser:
     def do_parse(self, iterator):
         pass
@@ -65,3 +75,19 @@ class SequenceParser(Parser):
 
     def expected(self):
         return [str(self._seq)]
+
+
+class AttemptParser(Parser):
+    def __init__(self, parser):
+        self._parser = parser
+
+    def do_parse(self, iterator):
+        with iterator.rewind_point() as point:
+            try:
+                return self._parser.do_parse(iterator)
+            except StopIteration:
+                iterator.rewind(point)
+                return Failure('end of input')
+
+    def expected(self):
+        return self._parser.expected()
