@@ -26,3 +26,16 @@ class SuccessParser(Parser):
 
     def expected(self):
         return []
+
+
+class AnyElemParser(Parser):
+    def do_parse(self, iterator):
+        try:
+            value = next(iterator)
+            return value
+        except StopIteration:
+            # TODO: return "end of input" error
+            pass
+
+    def expected(self):
+        return ['any element']
