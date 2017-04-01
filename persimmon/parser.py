@@ -30,6 +30,11 @@ class Parser:
         iterator = utils.RewindIterator(iter(iterable))
         return self.do_parse(iterator)
 
+    def __or__(self, other):
+        if isinstance(other, ChoiceParser):
+            return other.prepend(self)
+        return ChoiceParser(self, other)
+
     @staticmethod
     def success(value):
         return SuccessParser(value)
@@ -158,6 +163,11 @@ class ChoiceParser(Parser):
 
     def expected(self):
         return tuple(map(lambda p: p.expected(), self._parsers))
+
+    def __or__(self, other):
+        if isinstance(other, ChoiceParser):
+            return self.post_extend(other)
+        return self.append(other)
 
     def prepend(self, parser):
         return ChoiceParser(parser, *self._parsers)
