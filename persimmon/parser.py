@@ -34,6 +34,10 @@ class Parser:
     def sequence(seq):
         return AttemptParser(RawSequenceParser(seq))
 
+    @staticmethod
+    def digit():
+        return AttemptParser(RawDigitParser())
+
 
 class SuccessParser(Parser):
     def __init__(self, value):
