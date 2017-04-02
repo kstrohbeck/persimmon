@@ -74,11 +74,11 @@ class Parser:
 
     @property
     def zero_or_more(self):
-        return ZeroOrMoreParser(self)
+        return RepeatParser(self)
 
     @property
     def one_or_more(self):
-        return ZeroOrMoreParser(self, min_results=1)
+        return RepeatParser(self, min_results=1)
 
 
 class SuccessParser(Parser):
@@ -284,7 +284,7 @@ class MapParser(Parser):
         return self._parser.expected()
 
 
-class ZeroOrMoreParser(Parser):
+class RepeatParser(Parser):
     def __init__(self, parser, min_results=0):
         self._parser = parser
         self._min_results = min_results
