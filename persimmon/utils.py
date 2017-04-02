@@ -245,11 +245,38 @@ class RewindPoint:
         return self._rewinder == other._rewinder and self.index < other.index
 
 
-class RewindIterator(collections.Iterator):
+class BaseRewindIterator(collections.Iterator):
+    def __init__(self):
+        self._points = []
+
+    def __next__(self):
+        raise NotImplementedError
+
+    @property
+    def index(self):
+        raise NotImplementedError
+
+    @index.setter
+    def index(self, index):
+        raise NotImplementedError
+
+    def rewind_point(self):
+        point = RewindPoint(self, self.index)
+        self._points.append(point)
+        return point
+
+    def rewind_to(self, point):
+        self.index = point.index
+
+    def forget(self, point):
+        self._points.remove(point)
+
+
+class RewindIterator(BaseRewindIterator):
     def __init__(self, iterable):
+        super().__init__()
         self._iterator = iter(iterable)
         self._store = Zipper()
-        self._points = []
 
     def __next__(self):
         if self._store.is_at_end:
@@ -264,16 +291,16 @@ class RewindIterator(collections.Iterator):
             self._store = Zipper()
         return value
 
-    def rewind_point(self):
-        point = RewindPoint(self, self._store.index)
-        self._points.append(point)
-        return point
+    @property
+    def index(self):
+        return self._store.index
 
-    def rewind_to(self, point):
-        self._store.index = point.index
+    @index.setter
+    def index(self, index):
+        self._store.index = index
 
     def forget(self, point):
-        self._points.remove(point)
+        super().forget(point)
         if self._points and point.index == 0:
             earliest = None
             for point in self._points:
@@ -284,11 +311,11 @@ class RewindIterator(collections.Iterator):
                 point.index -= new_start
 
 
-class StaticRewindIterator(collections.Iterator):
+class StaticRewindIterator(BaseRewindIterator):
     def __init__(self, data):
+        super().__init__()
         self._data = data
         self._index = 0
-        self._points = []
 
     def __next__(self):
         if self._index >= len(self._data):
@@ -297,13 +324,10 @@ class StaticRewindIterator(collections.Iterator):
         self._index += 1
         return value
 
-    def rewind_point(self):
-        point = RewindPoint(self, self._index)
-        self._points.append(point)
-        return point
+    @property
+    def index(self):
+        return self._index
 
-    def rewind_to(self, point):
-        self._index = point.index
-
-    def forget(self, point):
-        self._points.remove(point)
+    @index.setter
+    def index(self, index):
+        self._index = index
