@@ -83,6 +83,19 @@ class Parser:
     def at_least(self, min_results):
         return RepeatParser(self, min_results=min_results)
 
+    def at_most(self, max_results):
+        return RepeatParser(self, max_results=max_results)
+
+    def repeat_between(self, min_results, max_results):
+        return RepeatParser(
+            self,
+            min_results=min_results,
+            max_results=max_results
+        )
+
+    def repeat(self, num_results):
+        return self.repeat_between(num_results, num_results)
+
 
 class SuccessParser(Parser):
     def __init__(self, value):
