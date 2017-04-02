@@ -35,7 +35,6 @@ class Parser:
         result = self.do_parse(iterator)
         if isinstance(result, Success):
             return result.value
-        print(result)
         print('Parsing failure: unexpected {}'.format(result.unexpected))
         print('Expected: {}'.format(', '.join(result.expected)))
 
