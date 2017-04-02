@@ -99,6 +99,9 @@ class Parser:
     def repeat(self, num_results):
         return self.repeat_between(num_results, num_results)
 
+    def labeled(self, label):
+        return LabeledParser(self, label)
+
 
 class SuccessParser(Parser):
     def __init__(self, value):
@@ -347,3 +350,18 @@ class RepeatParser(Parser):
 
     def expected(self):
         return self._parser.expected()
+
+
+class LabeledParser(Parser):
+    def __init__(self, parser, label):
+        self._parser = parser
+        self._label = label
+
+    def do_parse(self, iterator):
+        result = self._parser.do_parse(iterator)
+        if isinstance(result, Failure) and not result.consumed:
+            result.expected = [self._label]
+        return result
+
+    def expected(self):
+        return self._label
