@@ -282,3 +282,27 @@ class RewindIterator(collections.Iterator):
             new_start = self._store.delete_up_to(earliest.index)
             for point in self._points:
                 point.index -= new_start
+
+
+class StaticRewindIterator(collections.Iterator):
+    def __init__(self, data):
+        self._data = data
+        self._index = 0
+        self._points = []
+
+    def __next__(self):
+        if self._index >= len(self._data):
+            raise StopIteration
+        value = self._data[self._index]
+        self._index += 1
+        return value
+
+    def rewind_point(self):
+        point = RewindPoint(self, self._index)
+        self._points.append(point)
+
+    def rewind_to(self, point):
+        self._index = point.index
+
+    def forget(self, point):
+        self._points.remove(point)
