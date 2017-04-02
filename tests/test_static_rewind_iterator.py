@@ -1,6 +1,6 @@
 import pytest
 
-from persimmon.utils import RewindIterator, StaticRewindIterator
+from persimmon.utils import StaticRewindIterator
 
 
 def test_static_rewind_iterator_wraps_inner_data():
