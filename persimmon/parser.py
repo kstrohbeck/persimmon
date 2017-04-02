@@ -43,8 +43,8 @@ class Parser:
             expected = self.expected()
         return Failure(unexpected, consumed, expected)
 
-    def parse(self, iterable):
-        iterator = utils.StreamRewindIterator(iter(iterable))
+    def parse(self, data):
+        iterator = utils.RewindIterator.make_rewind_iterator(data)
         result = self.do_parse(iterator)
         if isinstance(result, Success):
             return result.value
