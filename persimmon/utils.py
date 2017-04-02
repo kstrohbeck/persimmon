@@ -313,10 +313,8 @@ class RewindIterator(collections.Iterator):
         """
         if hasattr(data, '__getitem__'):
             return StaticRewindIterator(data)
-        elif hasattr(data, '__next__'):
-            return StreamRewindIterator(data)
         elif hasattr(data, '__iter__'):
-            return StreamRewindIterator(iter(data))
+            return StreamRewindIterator(data)
         # TODO: customize exception
         raise Exception
 
