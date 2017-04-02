@@ -32,7 +32,12 @@ class Parser:
 
     def parse(self, iterable):
         iterator = utils.RewindIterator(iter(iterable))
-        return self.do_parse(iterator)
+        result = self.do_parse(iterator)
+        if isinstance(result, Success):
+            return result.value
+        print(result)
+        print('Parsing failure: unexpected {}'.format(result.unexpected))
+        print('Expected: {}'.format(', '.join(result.expected)))
 
     def __or__(self, other):
         if isinstance(other, ChoiceParser):
