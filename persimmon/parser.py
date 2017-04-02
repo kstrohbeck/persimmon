@@ -248,7 +248,7 @@ class ChoiceParser(MultiChildParser):
                     first_success = result
             else:
                 last_failure = result
-            expected.append(result.expected)
+            expected.extend(result.expected)
         if first_success is not None:
             first_success.expected = expected
             return first_success
