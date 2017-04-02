@@ -274,6 +274,9 @@ class ChainParser(Parser):
             return self.post_extend(other)
         return self.append(other)
 
+    def map(self, func):
+        return MapParser(self, func, spread_args=True)
+
     def prepend(self, parser):
         return ChainParser(parser, *self._parsers)
 
