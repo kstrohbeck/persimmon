@@ -249,6 +249,7 @@ class MapParser(Parser):
                 result.value = self._func(*result.value)
             else:
                 result.value = self._func(result.value)
+        return result
 
     def expected(self):
         return self._parser.expected()
