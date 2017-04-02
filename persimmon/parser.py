@@ -212,80 +212,6 @@ class EndOfFileParser(Parser):
         return ['end of file']
 
 
-class MultiChildParser(Parser):
-    def __init__(self, *parsers):
-        super().__init__(noise=all(p.noise for p in parsers))
-        self._parsers = parsers
-
-    def combine(self, other):
-        if isinstance(other, self.__class__):
-            return self.extend(other)
-        return self.append(other)
-
-    def prepend(self, parser):
-        return self.__class__(parser, *self._parsers)
-
-    def append(self, parser):
-        return self.__class__(*self._parsers, parser)
-
-    def extend(self, parsers):
-        return self.__class__(*self._parsers, *parsers)
-
-
-class ChoiceParser(MultiChildParser):
-    def do_parse(self, iterator):
-        first_success = None
-        last_failure = None
-        expected = []
-        for parser in self._parsers:
-            result = parser.do_parse(iterator)
-            if result.consumed:
-                return result
-            if isinstance(result, Success):
-                if first_success is None:
-                    first_success = result
-            else:
-                last_failure = result
-            expected.extend(result.expected)
-        if first_success is not None:
-            first_success.expected = expected
-            return first_success
-        last_failure.expected = expected
-        return last_failure
-
-    def expected(self):
-        return [p.expected() for p in self._parsers]
-
-    def __or__(self, other):
-        return self.combine(other)
-
-
-class ChainParser(MultiChildParser):
-    def do_parse(self, iterator):
-        results = []
-        consumed = False
-        for parser in self._parsers:
-            result = parser.do_parse(iterator)
-            consumed = consumed or result.consumed
-            if isinstance(result, Failure):
-                result.consumed = consumed
-                return result
-            if not parser.noise:
-                results.append(result.value)
-        if len(results) == 1:
-            return Success(results[0], consumed=consumed)
-        return Success(results, consumed=consumed)
-
-    def expected(self):
-        pass
-
-    def __and__(self, other):
-        return self.combine(other)
-
-    def map(self, func):
-        return MapParser(self, func, spread_args=True)
-
-
 class SingleChildParser(Parser):
     def __init__(self, child, noise=False):
         noise = noise or child.noise
@@ -390,3 +316,77 @@ class LabeledParser(SingleChildParser):
 class NoisyParser(SingleChildParser):
     def __init__(self, child, noise):
         super().__init__(child, noise=noise)
+
+
+class MultiChildParser(Parser):
+    def __init__(self, *parsers):
+        super().__init__(noise=all(p.noise for p in parsers))
+        self._parsers = parsers
+
+    def combine(self, other):
+        if isinstance(other, self.__class__):
+            return self.extend(other)
+        return self.append(other)
+
+    def prepend(self, parser):
+        return self.__class__(parser, *self._parsers)
+
+    def append(self, parser):
+        return self.__class__(*self._parsers, parser)
+
+    def extend(self, parsers):
+        return self.__class__(*self._parsers, *parsers)
+
+
+class ChoiceParser(MultiChildParser):
+    def do_parse(self, iterator):
+        first_success = None
+        last_failure = None
+        expected = []
+        for parser in self._parsers:
+            result = parser.do_parse(iterator)
+            if result.consumed:
+                return result
+            if isinstance(result, Success):
+                if first_success is None:
+                    first_success = result
+            else:
+                last_failure = result
+            expected.extend(result.expected)
+        if first_success is not None:
+            first_success.expected = expected
+            return first_success
+        last_failure.expected = expected
+        return last_failure
+
+    def expected(self):
+        return [p.expected() for p in self._parsers]
+
+    def __or__(self, other):
+        return self.combine(other)
+
+
+class ChainParser(MultiChildParser):
+    def do_parse(self, iterator):
+        results = []
+        consumed = False
+        for parser in self._parsers:
+            result = parser.do_parse(iterator)
+            consumed = consumed or result.consumed
+            if isinstance(result, Failure):
+                result.consumed = consumed
+                return result
+            if not parser.noise:
+                results.append(result.value)
+        if len(results) == 1:
+            return Success(results[0], consumed=consumed)
+        return Success(results, consumed=consumed)
+
+    def expected(self):
+        pass
+
+    def __and__(self, other):
+        return self.combine(other)
+
+    def map(self, func):
+        return MapParser(self, func, spread_args=True)
