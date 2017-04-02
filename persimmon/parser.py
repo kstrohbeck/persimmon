@@ -72,6 +72,9 @@ class Parser:
     def map(self, func):
         return MapParser(self, func)
 
+    def filter(self, pred):
+        return FilterParser(self, pred)
+
     @property
     def zero_or_more(self):
         return RepeatParser(self)
@@ -298,6 +301,22 @@ class MapParser(Parser):
 
     def expected(self):
         return self._parser.expected()
+
+
+class FilterParser(Parser):
+    def __init__(self, parser, pred, spread_args=False):
+        self._parser = parser
+        self._pred = pred
+        self._spread_args = spread_args
+
+    def do_parse(self, iterator):
+        result = self._parser.do_parse(iterator)
+        if isinstance(result, Success) and not self._pred(result.value):
+            return Failure('bad input', consumed=True, expected=[])
+        return result
+
+    def expected(self):
+        return []
 
 
 class RepeatParser(Parser):
