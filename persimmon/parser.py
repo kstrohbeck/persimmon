@@ -114,6 +114,9 @@ class Parser:
     def map(self, func):
         return MapParser(self, func)
 
+    def always(self, value):
+        return self.map(lambda _: value)
+
     def filter(self, pred):
         return FilterParser(self, pred)
 
