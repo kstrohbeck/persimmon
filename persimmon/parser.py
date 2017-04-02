@@ -30,17 +30,18 @@ class Parser:
     def do_parse(self, iterator):
         pass
 
+    @property
     def expected(self):
-        pass
+        raise NotImplementedError
 
     def _parse_success(self, value, consumed=False, expected=None):
         if expected is None:
-            expected = self.expected()
+            expected = self.expected
         return Success(value, consumed, expected)
 
     def _parse_failure(self, unexpected, consumed=False, expected=None):
         if expected is None:
-            expected = self.expected()
+            expected = self.expected
         return Failure(unexpected, consumed, expected)
 
     def parse(self, data):
@@ -143,6 +144,7 @@ class SuccessParser(Parser):
     def do_parse(self, iterator):
         return Success(self._value)
 
+    @property
     def expected(self):
         return []
 
@@ -155,6 +157,7 @@ class AnyElemParser(Parser):
         except StopIteration:
             return self._parse_failure('end of input')
 
+    @property
     def expected(self):
         return ['any element']
 
@@ -170,6 +173,7 @@ class RawSatisfyParser(Parser):
             return self._parse_failure(value, consumed=True)
         return self._parse_success(value, consumed=True)
 
+    @property
     def expected(self):
         return []
 
@@ -185,6 +189,7 @@ class RawElemParser(Parser):
             return self._parse_failure(value, consumed=True)
         return self._parse_success(value, consumed=True)
 
+    @property
     def expected(self):
         return [self._elem]
 
@@ -203,6 +208,7 @@ class RawSequenceParser(Parser):
                 return self._parse_failure(accum, consumed=True)
         return self._parse_success(accum, consumed=True)
 
+    @property
     def expected(self):
         return [str(self._seq)]
 
@@ -214,6 +220,7 @@ class RawDigitParser(Parser):
             return self._parse_success(int(value), consumed=True)
         return self._parse_failure(value, consumed=True)
 
+    @property
     def expected(self):
         return ['digit']
 
@@ -231,6 +238,7 @@ class EndOfFileParser(Parser):
             except StopIteration:
                 return self._parse_success(None)
 
+    @property
     def expected(self):
         return ['end of file']
 
@@ -244,8 +252,9 @@ class SingleChildParser(Parser):
     def do_parse(self, iterator):
         return self._child.do_parse(iterator)
 
+    @property
     def expected(self):
-        return self._child.expected()
+        return self._child.expected
 
 
 class AttemptParser(SingleChildParser):
@@ -290,6 +299,7 @@ class FilterParser(SingleChildParser):
             return self._parse_failure('bad input', consumed=True)
         return result
 
+    @property
     def expected(self):
         return []
 
@@ -329,9 +339,10 @@ class LabeledParser(SingleChildParser):
     def do_parse(self, iterator):
         result = super().do_parse(iterator)
         if not result.consumed:
-            result.expected = self.expected()
+            result.expected = self.expected
         return result
 
+    @property
     def expected(self):
         return [self._label]
 
@@ -345,6 +356,10 @@ class MultiChildParser(Parser):
     def __init__(self, *parsers):
         super().__init__(noise=all(p.noise for p in parsers))
         self._parsers = parsers
+
+    @property
+    def expected(self):
+        raise NotImplementedError
 
     def combine(self, other):
         if isinstance(other, self.__class__):
@@ -382,8 +397,9 @@ class ChoiceParser(MultiChildParser):
         last_failure.expected = expected
         return last_failure
 
+    @property
     def expected(self):
-        return [p.expected() for p in self._parsers]
+        return [p.expected for p in self._parsers]
 
     def __or__(self, other):
         return self.combine(other)
@@ -405,8 +421,9 @@ class ChainParser(MultiChildParser):
             return Success(results[0], consumed=consumed)
         return Success(results, consumed=consumed)
 
+    @property
     def expected(self):
-        pass
+        return []
 
     def __and__(self, other):
         return self.combine(other)
