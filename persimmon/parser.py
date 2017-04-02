@@ -117,6 +117,9 @@ class Parser:
     def filter(self, pred):
         return FilterParser(self, pred)
 
+    def transform(self, transform):
+        return self.map(transform).filter(lambda x: x is not None)
+
     @property
     def zero_or_more(self):
         return RepeatParser(self)
@@ -170,28 +173,25 @@ class SuccessParser(Parser):
         return []
 
 
-class SatisfyStep:
-    def map(self, value):
-        return value
-
-    def filter(self, _):
-        return True
+def map_step(func):
+    def run(value):
+        return True, func(value)
+    return run
 
 
-class MapStep(SatisfyStep):
-    def __init__(self, func):
-        self._func = func
-
-    def map(self, value):
-        return self._func(value)
+def filter_step(pred):
+    def run(value):
+        return pred(value), value
+    return run
 
 
-class FilterStep(SatisfyStep):
-    def __init__(self, pred):
-        self._pred = pred
-
-    def filter(self, value):
-        return self._pred(value)
+def transform_step(transform):
+    def run(value):
+        new_value = transform(value)
+        if new_value is None:
+            return False, value
+        return True, new_value
+    return run
 
 
 class SatisfyParser(Parser):
@@ -205,10 +205,10 @@ class SatisfyParser(Parser):
                 initial = next(iterator)
                 value = initial
                 for step in self._steps:
-                    if not step.filter(value):
+                    passes, value = step(value)
+                    if not passes:
                         iterator.rewind_to(point)
                         return self._parse_failure(initial)
-                    value = step.map(value)
                 return self._parse_success([value], consumed=True)
             except StopIteration:
                 iterator.rewind_to(point)
@@ -219,10 +219,13 @@ class SatisfyParser(Parser):
         return []
 
     def map(self, func):
-        return SatisfyParser(self._steps + [MapStep(func)])
+        return SatisfyParser(self._steps + [map_step(func)])
 
     def filter(self, pred):
-        return SatisfyParser(self._steps + [FilterStep(pred)])
+        return SatisfyParser(self._steps + [filter_step(pred)])
+
+    def transform(self, transform):
+        return SatisfyParser(self._steps + [transform_step(transform)])
 
 
 class RawSequenceParser(Parser):
@@ -368,10 +371,28 @@ class LabeledParser(SingleChildParser):
     def expected(self):
         return [self._label]
 
+    def map(self, func):
+        return LabeledParser(self._child.map(func), self._label)
+
+    def filter(self, pred):
+        return LabeledParser(self._child.filter(pred), self._label)
+
+    def transform(self, transform):
+        return LabeledParser(self._child.transform(transform), self._label)
+
 
 class NoisyParser(SingleChildParser):
     def __init__(self, child, noise):
         super().__init__(child, noise=noise)
+
+    def map(self, func):
+        return NoisyParser(self._child.map(func), self.noise)
+
+    def filter(self, pred):
+        return NoisyParser(self._child.filter(pred), self.noise)
+
+    def transform(self, transform):
+        return NoisyParser(self._child.transform(transform), self.noise)
 
 
 class MultiChildParser(Parser):
