@@ -7,3 +7,4 @@ elem = Parser.elem
 sequence = Parser.sequence
 string = Parser.string
 digit = Parser.digit()
+eof = Parser.eof()

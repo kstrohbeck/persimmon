@@ -85,6 +85,10 @@ class Parser:
     def digit():
         return AttemptParser(RawDigitParser())
 
+    @staticmethod
+    def eof():
+        return EndOfFileParser()
+
     def map(self, func):
         return MapParser(self, func)
 
