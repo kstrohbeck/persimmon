@@ -9,11 +9,13 @@ if path.exists('README.rst'):
 
 setup(
     name='persimmon',
-    version='0.0.1',
+    version='0.0.2',
     author='Kyle Strohbeck',
     author_email='kstrohbeck@gmail.com',
     description='Idiomatic parser combinators, Python-style.',
     long_description=long_description,
     url='https://github.com/kstrohbeck/persimmon',
     packages=['persimmon'],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
 )
