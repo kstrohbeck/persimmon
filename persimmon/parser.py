@@ -62,6 +62,10 @@ class Parser:
         return AttemptParser(RawSequenceParser(seq))
 
     @staticmethod
+    def string(seq):
+        return AttemptParser(RawStringParser(seq))
+
+    @staticmethod
     def digit():
         return AttemptParser(RawDigitParser())
 
@@ -107,6 +111,23 @@ class RawSequenceParser(Parser):
 
     def expected(self):
         return [str(self._seq)]
+
+
+class RawStringParser(Parser):
+    def __init__(self, seq):
+        self._seq = seq
+
+    def do_parse(self, iterator):
+        accum = ''
+        for s in iter(self._seq):
+            value = next(iterator)
+            accum += value
+            if s != value:
+                return Failure(accum, consumed=True, expected=[self._seq])
+        return Success(accum, consumed=True, expected=[self._seq])
+
+    def expected(self):
+        return [self._seq]
 
 
 class AttemptParser(Parser):
