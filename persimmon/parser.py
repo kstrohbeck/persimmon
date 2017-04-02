@@ -33,6 +33,16 @@ class Parser:
     def expected(self):
         pass
 
+    def _parse_success(self, value, consumed=False, expected=None):
+        if expected is None:
+            expected = self.expected()
+        return Success(value, consumed, expected)
+
+    def _parse_failure(self, unexpected, consumed=False, expected=None):
+        if expected is None:
+            expected = self.expected()
+        return Failure(unexpected, consumed, expected)
+
     def parse(self, iterable):
         iterator = utils.RewindIterator(iter(iterable))
         result = self.do_parse(iterator)
@@ -121,9 +131,9 @@ class AnyElemParser(Parser):
     def do_parse(self, iterator):
         try:
             value = next(iterator)
-            return Success(value, consumed=True, expected=['any element'])
+            return self._parse_success(value, consumed=True)
         except StopIteration:
-            return Failure('end of input', expected=['any element'])
+            return self._parse_failure('end of input')
 
     def expected(self):
         return ['any element']
@@ -140,8 +150,8 @@ class RawSequenceParser(Parser):
             value = next(iterator)
             accum.append(value)
             if s != value:
-                return Failure(accum, consumed=True, expected=[str(self._seq)])
-        return Success(accum, consumed=True, expected=[str(self._seq)])
+                return self._parse_failure(accum, consumed=True)
+        return self._parse_success(accum, consumed=True)
 
     def expected(self):
         return [str(self._seq)]
@@ -162,7 +172,7 @@ class AttemptParser(Parser):
                 return result
             except StopIteration:
                 iterator.rewind_to(point)
-                return Failure('end of input', expected=self._parser.expected())
+                return self._parse_failure('end of input')
 
     def expected(self):
         return self._parser.expected()
@@ -172,8 +182,8 @@ class RawDigitParser(Parser):
     def do_parse(self, iterator):
         value = next(iterator)
         if str.isdigit(value):
-            return Success(int(value), consumed=True, expected=['digit'])
-        return Failure(value, consumed=True, expected=['digit'])
+            return self._parse_success(int(value), consumed=True)
+        return self._parse_failure(value, consumed=True)
 
     def expected(self):
         return ['digit']
@@ -188,9 +198,9 @@ class EndOfFileParser(Parser):
             try:
                 value = next(iterator)
                 iterator.rewind_to(point)
-                return Failure(value, expected=['end of file'])
+                return self._parse_failure(value)
             except StopIteration:
-                return Success(None)
+                return self._parse_success(None)
 
     def expected(self):
         return ['end of file']
@@ -300,7 +310,7 @@ class FilterParser(Parser):
     def do_parse(self, iterator):
         result = self._parser.do_parse(iterator)
         if isinstance(result, Success) and not self._pred(result.value):
-            return Failure('bad input', consumed=True, expected=[])
+            return self._parse_failure('bad input', consumed=True)
         return result
 
     def expected(self):
