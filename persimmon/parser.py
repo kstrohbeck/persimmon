@@ -24,6 +24,9 @@ class Failure(Result):
 
 
 class Parser:
+    def __init__(self, noise=False):
+        self.noise = noise
+
     def do_parse(self, iterator):
         pass
 
@@ -104,6 +107,7 @@ class Parser:
 
 class SuccessParser(Parser):
     def __init__(self, value):
+        super().__init__()
         self._value = value
 
     def do_parse(self, iterator):
@@ -127,6 +131,7 @@ class AnyElemParser(Parser):
 
 class RawSequenceParser(Parser):
     def __init__(self, seq):
+        super().__init__(noise=True)
         self._seq = seq
 
     def do_parse(self, iterator):
@@ -144,6 +149,7 @@ class RawSequenceParser(Parser):
 
 class RawStringParser(Parser):
     def __init__(self, seq):
+        super().__init__(noise=True)
         self._seq = seq
 
     def do_parse(self, iterator):
@@ -161,6 +167,7 @@ class RawStringParser(Parser):
 
 class AttemptParser(Parser):
     def __init__(self, parser):
+        super().__init__(noise=parser.noise)
         self._parser = parser
 
     def do_parse(self, iterator):
@@ -191,6 +198,9 @@ class RawDigitParser(Parser):
 
 
 class EndOfFileParser(Parser):
+    def __init__(self):
+        super().__init__(noise=True)
+
     def do_parse(self, iterator):
         with iterator.rewind_point() as point:
             try:
@@ -206,6 +216,7 @@ class EndOfFileParser(Parser):
 
 class ChoiceParser(Parser):
     def __init__(self, *parsers):
+        super().__init__(noise=all(p.noise for p in parsers))
         self._parsers = parsers
 
     def do_parse(self, iterator):
@@ -251,6 +262,7 @@ class ChoiceParser(Parser):
 
 class ChainParser(Parser):
     def __init__(self, *parsers):
+        super().__init__(noise=all(p.noise for p in parsers))
         self._parsers = parsers
 
     def do_parse(self, iterator):
@@ -291,6 +303,7 @@ class ChainParser(Parser):
 
 class MapParser(Parser):
     def __init__(self, parser, func, spread_args=False):
+        super().__init__(noise=parser.noise)
         self._parser = parser
         self._func = func
         self._spread_args = spread_args
@@ -310,6 +323,7 @@ class MapParser(Parser):
 
 class FilterParser(Parser):
     def __init__(self, parser, pred, spread_args=False):
+        super().__init__(noise=parser.noise)
         self._parser = parser
         self._pred = pred
         self._spread_args = spread_args
@@ -326,6 +340,7 @@ class FilterParser(Parser):
 
 class RepeatParser(Parser):
     def __init__(self, parser, min_results=0, max_results=None):
+        super().__init__(noise=parser.noise)
         self._parser = parser
         self._min_results = min_results
         self._max_results = max_results
@@ -356,6 +371,7 @@ class RepeatParser(Parser):
 
 class LabeledParser(Parser):
     def __init__(self, parser, label):
+        super().__init__(noise=parser.noise)
         self._parser = parser
         self._label = label
 
