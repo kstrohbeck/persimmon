@@ -245,7 +245,7 @@ class RewindPoint:
         return self._rewinder == other._rewinder and self.index < other.index
 
 
-class BaseRewindIterator(collections.Iterator):
+class RewindIterator(collections.Iterator):
     def __init__(self):
         self._points = []
 
@@ -272,7 +272,7 @@ class BaseRewindIterator(collections.Iterator):
         self._points.remove(point)
 
 
-class RewindIterator(BaseRewindIterator):
+class StreamRewindIterator(RewindIterator):
     def __init__(self, iterable):
         super().__init__()
         self._iterator = iter(iterable)
@@ -311,7 +311,7 @@ class RewindIterator(BaseRewindIterator):
                 point.index -= new_start
 
 
-class StaticRewindIterator(BaseRewindIterator):
+class StaticRewindIterator(RewindIterator):
     def __init__(self, data):
         super().__init__()
         self._data = data
