@@ -114,6 +114,14 @@ class Parser:
     def labeled(self, label):
         return LabeledParser(self, label)
 
+    @property
+    def noisy(self):
+        return NoisyParser(self, noise=True)
+
+    @property
+    def not_noisy(self):
+        return NoisyParser(self, noise=False)
+
 
 class SuccessParser(Parser):
     def __init__(self, value):
@@ -362,3 +370,15 @@ class LabeledParser(Parser):
 
     def expected(self):
         return self._label
+
+
+class NoisyParser(Parser):
+    def __init__(self, parser, noise):
+        super().__init__(noise=noise)
+        self._parser = parser
+
+    def do_parse(self, iterator):
+        return self._parser.do_parse(iterator)
+
+    def expected(self):
+        return self._parser.expected()
