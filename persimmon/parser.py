@@ -72,6 +72,10 @@ class Parser:
     def map(self, func):
         return MapParser(self, func)
 
+    @property
+    def zero_or_more(self):
+        return ZeroOrMoreParser(self)
+
 
 class SuccessParser(Parser):
     def __init__(self, value):
@@ -271,6 +275,28 @@ class MapParser(Parser):
             else:
                 result.value = self._func(result.value)
         return result
+
+    def expected(self):
+        return self._parser.expected()
+
+
+class ZeroOrMoreParser(Parser):
+    def __init__(self, parser):
+        self._parser = parser
+
+    def do_parse(self, iterator):
+        results = []
+        consumed = False
+        expected = []
+        while True:
+            result = self._parser.do_parse(iterator)
+            consumed = consumed or result.consumed
+            expected = result.expected
+            if isinstance(result, Success):
+                results.append(result.value)
+            else:
+                break
+        return Success(results, consumed=consumed, expected=expected)
 
     def expected(self):
         return self._parser.expected()
