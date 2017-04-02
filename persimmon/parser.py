@@ -234,11 +234,7 @@ class MultiChildParser(Parser):
         return self.__class__(*self._parsers, *parsers)
 
 
-class ChoiceParser(Parser):
-    def __init__(self, *parsers):
-        super().__init__(noise=all(p.noise for p in parsers))
-        self._parsers = parsers
-
+class ChoiceParser(MultiChildParser):
     def do_parse(self, iterator):
         first_success = None
         last_failure = None
@@ -263,21 +259,7 @@ class ChoiceParser(Parser):
         return [p.expected() for p in self._parsers]
 
     def __or__(self, other):
-        if isinstance(other, ChoiceParser):
-            return self.post_extend(other)
-        return self.append(other)
-
-    def prepend(self, parser):
-        return ChoiceParser(parser, *self._parsers)
-
-    def pre_extend(self, parsers):
-        return ChoiceParser(*parsers, *self._parsers)
-
-    def append(self, parser):
-        return ChoiceParser(*self._parsers, parser)
-
-    def post_extend(self, parsers):
-        return ChoiceParser(*self._parsers, *parsers)
+        return self.combine(other)
 
 
 class ChainParser(Parser):
