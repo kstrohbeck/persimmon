@@ -298,6 +298,26 @@ class RewindIterator(collections.Iterator):
         """
         self._points.remove(point)
 
+    @staticmethod
+    def make_rewind_iterator(data):
+        """Create a new rewind iterator, specializing it based on the type of
+        the data.
+
+        For efficiency, a static rewind iterator is used, but it only works if
+        the data supports indexing (has the __getitem__ method defined.)
+        Iterables and iterators are made into a stream rewinder. Other values
+        are not supported.
+
+        :param data: the data to wrap
+        :return: the rewind iterator
+        """
+        if hasattr(data, '__getitem__'):
+            return StaticRewindIterator(data)
+        elif hasattr(data, '__iter__'):
+            return StreamRewindIterator(data)
+        # TODO: customize exception
+        raise Exception
+
 
 class StreamRewindIterator(RewindIterator):
     """Wrapper around an iterable/iterator that allows backtracking.
@@ -310,7 +330,9 @@ class StreamRewindIterator(RewindIterator):
     def __init__(self, iterable):
         """Create a new stream rewind iterator.
 
-        :param iterable: the iterable stream to wrap.
+        The iterable has to support either __iter__ or __next__.
+
+        :param iterable: the iterable stream to wrap
         """
         super().__init__()
         self._iterator = iter(iterable)
@@ -358,6 +380,12 @@ class StaticRewindIterator(RewindIterator):
     """
 
     def __init__(self, data):
+        """Creates a new static rewind iterator.
+
+        data must be indexable - it has to have __getitem__ defined.
+
+        :param data: the data to iterate over
+        """
         super().__init__()
         self._data = data
         self._index = 0
