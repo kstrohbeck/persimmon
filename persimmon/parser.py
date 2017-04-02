@@ -70,15 +70,15 @@ class Parser:
 
     @staticmethod
     def any_elem():
-        return AnyElemParser()
+        return SatisfyParser().labeled('any element')
 
     @staticmethod
     def satisfy(pred):
-        return AttemptParser(RawSatisfyParser(pred))
+        return SatisfyParser().filter(pred)
 
     @staticmethod
     def elem(el):
-        return AttemptParser(RawElemParser(el))
+        return SatisfyParser().filter(lambda e: e == el).noisy.labeled(el)
 
     @staticmethod
     def sequence(seq):
@@ -90,11 +90,18 @@ class Parser:
 
     @staticmethod
     def digit():
-        return AttemptParser(RawDigitParser())
+        return SatisfyParser().filter(str.isdigit).map(int).labeled('digit')
 
     @staticmethod
     def eof():
         return EndOfFileParser()
+
+    @property
+    def attempt(self):
+        return AttemptParser(self)
+
+    def default(self, value):
+        return self | Parser.success(value)
 
     def map(self, func):
         return MapParser(self, func)
@@ -137,6 +144,10 @@ class Parser:
     def not_noisy(self):
         return NoisyParser(self, noise=False)
 
+    @property
+    def exists(self):
+        return self.map(lambda _: True) | Parser.success(False)
+
 
 class SuccessParser(Parser):
     def __init__(self, value):
@@ -149,6 +160,60 @@ class SuccessParser(Parser):
     @property
     def expected(self):
         return []
+
+
+class SatisfyStep:
+    def map(self, value):
+        return value
+
+    def filter(self, _):
+        return True
+
+
+class MapStep(SatisfyStep):
+    def __init__(self, func):
+        self._func = func
+
+    def map(self, value):
+        return self._func(value)
+
+
+class FilterStep(SatisfyStep):
+    def __init__(self, pred):
+        self._pred = pred
+
+    def filter(self, value):
+        return self._pred(value)
+
+
+class SatisfyParser(Parser):
+    def __init__(self, steps=None):
+        super().__init__(noise=False)
+        self._steps = [] if steps is None else steps
+
+    def do_parse(self, iterator):
+        with iterator.rewind_point() as point:
+            try:
+                value = next(iterator)
+                for step in self._steps:
+                    if not step.filter(value):
+                        iterator.rewind_to(point)
+                        return self._parse_failure('bad input')
+                    value = step.map(value)
+                return self._parse_success([value], consumed=True)
+            except StopIteration:
+                iterator.rewind_to(point)
+                return self._parse_failure('end of input')
+
+    @property
+    def expected(self):
+        return []
+
+    def map(self, func):
+        return SatisfyParser(self._steps + [MapStep(func)])
+
+    def filter(self, pred):
+        return SatisfyParser(self._steps + [FilterStep(pred)])
 
 
 class AnyElemParser(Parser):
