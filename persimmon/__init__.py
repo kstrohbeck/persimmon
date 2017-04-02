@@ -9,3 +9,5 @@ sequence = Parser.sequence
 string = Parser.string
 digit = Parser.digit()
 eof = Parser.eof()
+one_of = Parser.one_of
+none_of = Parser.none_of

@@ -81,6 +81,14 @@ class Parser:
         return SatisfyParser().filter(lambda e: e == el).noisy.labeled(el)
 
     @staticmethod
+    def one_of(*els):
+        return SatisfyParser().filter(lambda e: e in els).labeled(els)
+
+    @staticmethod
+    def none_of(*els):
+        return SatisfyParser().filter(lambda e: e not in els)
+
+    @staticmethod
     def sequence(seq):
         return AttemptParser(RawSequenceParser(seq))
 
@@ -194,11 +202,12 @@ class SatisfyParser(Parser):
     def do_parse(self, iterator):
         with iterator.rewind_point() as point:
             try:
-                value = next(iterator)
+                initial = next(iterator)
+                value = initial
                 for step in self._steps:
                     if not step.filter(value):
                         iterator.rewind_to(point)
-                        return self._parse_failure('bad input')
+                        return self._parse_failure(initial)
                     value = step.map(value)
                 return self._parse_success([value], consumed=True)
             except StopIteration:
