@@ -262,11 +262,7 @@ class ChoiceParser(MultiChildParser):
         return self.combine(other)
 
 
-class ChainParser(Parser):
-    def __init__(self, *parsers):
-        super().__init__(noise=all(p.noise for p in parsers))
-        self._parsers = parsers
-
+class ChainParser(MultiChildParser):
     def do_parse(self, iterator):
         results = []
         consumed = False
@@ -286,24 +282,10 @@ class ChainParser(Parser):
         pass
 
     def __and__(self, other):
-        if isinstance(other, ChainParser):
-            return self.post_extend(other)
-        return self.append(other)
+        return self.combine(other)
 
     def map(self, func):
         return MapParser(self, func, spread_args=True)
-
-    def prepend(self, parser):
-        return ChainParser(parser, *self._parsers)
-
-    def pre_extend(self, parsers):
-        return ChainParser(*parsers, *self._parsers)
-
-    def append(self, parser):
-        return ChainParser(*self._parsers, parser)
-
-    def post_extend(self, parsers):
-        return ChainParser(*self._parsers, *parsers)
 
 
 class MapParser(Parser):
