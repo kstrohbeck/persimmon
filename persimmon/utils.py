@@ -332,7 +332,9 @@ class StreamRewindIterator(RewindIterator):
     def __init__(self, iterable):
         """Create a new stream rewind iterator.
 
-        :param iterable: the iterable stream to wrap.
+        The iterable has to support either __iter__ or __next__.
+
+        :param iterable: the iterable stream to wrap
         """
         super().__init__()
         self._iterator = iter(iterable)
@@ -380,6 +382,12 @@ class StaticRewindIterator(RewindIterator):
     """
 
     def __init__(self, data):
+        """Creates a new static rewind iterator.
+
+        data must be indexable - it has to have __getitem__ defined.
+
+        :param data: the data to iterate over
+        """
         super().__init__()
         self._data = data
         self._index = 0
