@@ -288,15 +288,16 @@ class MapParser(Parser):
 
 
 class RepeatParser(Parser):
-    def __init__(self, parser, min_results=0):
+    def __init__(self, parser, min_results=0, max_results=None):
         self._parser = parser
         self._min_results = min_results
+        self._max_results = max_results
 
     def do_parse(self, iterator):
         results = []
         consumed = False
         expected = []
-        while True:
+        while self._max_results is None or len(results) < self._max_results:
             result = self._parser.do_parse(iterator)
             consumed = consumed or result.consumed
             expected = result.expected
