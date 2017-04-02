@@ -80,6 +80,9 @@ class Parser:
     def one_or_more(self):
         return RepeatParser(self, min_results=1)
 
+    def at_least(self, min_results):
+        return RepeatParser(self, min_results=min_results)
+
 
 class SuccessParser(Parser):
     def __init__(self, value):
