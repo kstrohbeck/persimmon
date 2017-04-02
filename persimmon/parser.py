@@ -70,6 +70,10 @@ class Parser:
         return AnyElemParser()
 
     @staticmethod
+    def satisfy(pred):
+        return AttemptParser(RawSatisfyParser(pred))
+
+    @staticmethod
     def elem(el):
         return AttemptParser(RawElemParser(el))
 
@@ -153,6 +157,21 @@ class AnyElemParser(Parser):
 
     def expected(self):
         return ['any element']
+
+
+class RawSatisfyParser(Parser):
+    def __init__(self, pred):
+        super().__init__(noise=False)
+        self._pred = pred
+
+    def do_parse(self, iterator):
+        value = next(iterator)
+        if not self._pred(value):
+            return self._parse_failure(value, consumed=True)
+        return self._parse_success(value, consumed=True)
+
+    def expected(self):
+        return []
 
 
 class RawElemParser(Parser):
