@@ -216,51 +216,6 @@ class SatisfyParser(Parser):
         return SatisfyParser(self._steps + [FilterStep(pred)])
 
 
-class AnyElemParser(Parser):
-    def do_parse(self, iterator):
-        try:
-            value = next(iterator)
-            return self._parse_success([value], consumed=True)
-        except StopIteration:
-            return self._parse_failure('end of input')
-
-    @property
-    def expected(self):
-        return ['any element']
-
-
-class RawSatisfyParser(Parser):
-    def __init__(self, pred):
-        super().__init__(noise=False)
-        self._pred = pred
-
-    def do_parse(self, iterator):
-        value = next(iterator)
-        if not self._pred(value):
-            return self._parse_failure(value, consumed=True)
-        return self._parse_success([value], consumed=True)
-
-    @property
-    def expected(self):
-        return []
-
-
-class RawElemParser(Parser):
-    def __init__(self, elem):
-        super().__init__(noise=True)
-        self._elem = elem
-
-    def do_parse(self, iterator):
-        value = next(iterator)
-        if value != self._elem:
-            return self._parse_failure(value, consumed=True)
-        return self._parse_success([value], consumed=True)
-
-    @property
-    def expected(self):
-        return [self._elem]
-
-
 class RawSequenceParser(Parser):
     def __init__(self, seq):
         super().__init__(noise=True)
@@ -278,18 +233,6 @@ class RawSequenceParser(Parser):
     @property
     def expected(self):
         return [str(self._seq)]
-
-
-class RawDigitParser(Parser):
-    def do_parse(self, iterator):
-        value = next(iterator)
-        if str.isdigit(value):
-            return self._parse_success([int(value)], consumed=True)
-        return self._parse_failure(value, consumed=True)
-
-    @property
-    def expected(self):
-        return ['digit']
 
 
 class EndOfFileParser(Parser):
