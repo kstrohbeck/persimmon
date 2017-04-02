@@ -300,6 +300,7 @@ class StaticRewindIterator(collections.Iterator):
     def rewind_point(self):
         point = RewindPoint(self, self._index)
         self._points.append(point)
+        return point
 
     def rewind_to(self, point):
         self._index = point.index
