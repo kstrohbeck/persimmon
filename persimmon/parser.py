@@ -76,6 +76,10 @@ class Parser:
     def zero_or_more(self):
         return ZeroOrMoreParser(self)
 
+    @property
+    def one_or_more(self):
+        return ZeroOrMoreParser(self, min_results=1)
+
 
 class SuccessParser(Parser):
     def __init__(self, value):
@@ -281,8 +285,9 @@ class MapParser(Parser):
 
 
 class ZeroOrMoreParser(Parser):
-    def __init__(self, parser):
+    def __init__(self, parser, min_results=0):
         self._parser = parser
+        self._min_results = min_results
 
     def do_parse(self, iterator):
         results = []
@@ -295,6 +300,12 @@ class ZeroOrMoreParser(Parser):
             if isinstance(result, Success):
                 results.append(result.value)
             else:
+                if len(results) < self._min_results:
+                    return Failure(
+                        result.unexpected,
+                        consumed=consumed,
+                        expected=expected
+                    )
                 break
         return Success(results, consumed=consumed, expected=expected)
 
