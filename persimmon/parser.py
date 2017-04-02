@@ -214,6 +214,26 @@ class EndOfFileParser(Parser):
         return ['end of file']
 
 
+class MultiChildParser(Parser):
+    def __init__(self, *parsers):
+        super().__init__(noise=all(p.noise for p in parsers))
+        self._parsers = parsers
+
+    def combine(self, other):
+        if isinstance(other, self.__class__):
+            return self.extend(other)
+        return self.append(other)
+
+    def prepend(self, parser):
+        return self.__class__(parser, *self._parsers)
+
+    def append(self, parser):
+        return self.__class__(*self._parsers, parser)
+
+    def extend(self, parsers):
+        return self.__class__(*self._parsers, *parsers)
+
+
 class ChoiceParser(Parser):
     def __init__(self, *parsers):
         super().__init__(noise=all(p.noise for p in parsers))
