@@ -8,11 +8,11 @@ class Result:
 
 
 class Success(Result):
-    def __init__(self, value, consumed=False, expected=None):
+    def __init__(self, values, consumed=False, expected=None):
         if expected is None:
             expected = []
         super().__init__(consumed, expected)
-        self.value = value
+        self.values = values
 
 
 class Failure(Result):
@@ -34,10 +34,10 @@ class Parser:
     def expected(self):
         raise NotImplementedError
 
-    def _parse_success(self, value, consumed=False, expected=None):
+    def _parse_success(self, values, consumed=False, expected=None):
         if expected is None:
             expected = self.expected
-        return Success(value, consumed, expected)
+        return Success(values, consumed, expected)
 
     def _parse_failure(self, unexpected, consumed=False, expected=None):
         if expected is None:
@@ -48,7 +48,9 @@ class Parser:
         iterator = utils.RewindIterator.make_rewind_iterator(data)
         result = self.do_parse(iterator)
         if isinstance(result, Success):
-            return result.value
+            if len(result.values) == 1:
+                return result.values[0]
+            return result.values
         print('Parsing failure: unexpected {}'.format(result.unexpected))
         print('Expected: {}'.format(', '.join(result.expected)))
 
@@ -142,7 +144,7 @@ class SuccessParser(Parser):
         self._value = value
 
     def do_parse(self, iterator):
-        return Success(self._value)
+        return Success([self._value])
 
     @property
     def expected(self):
@@ -153,7 +155,7 @@ class AnyElemParser(Parser):
     def do_parse(self, iterator):
         try:
             value = next(iterator)
-            return self._parse_success(value, consumed=True)
+            return self._parse_success([value], consumed=True)
         except StopIteration:
             return self._parse_failure('end of input')
 
@@ -171,7 +173,7 @@ class RawSatisfyParser(Parser):
         value = next(iterator)
         if not self._pred(value):
             return self._parse_failure(value, consumed=True)
-        return self._parse_success(value, consumed=True)
+        return self._parse_success([value], consumed=True)
 
     @property
     def expected(self):
@@ -187,7 +189,7 @@ class RawElemParser(Parser):
         value = next(iterator)
         if value != self._elem:
             return self._parse_failure(value, consumed=True)
-        return self._parse_success(value, consumed=True)
+        return self._parse_success([value], consumed=True)
 
     @property
     def expected(self):
@@ -206,7 +208,7 @@ class RawSequenceParser(Parser):
             accum.append(value)
             if s != value:
                 return self._parse_failure(accum, consumed=True)
-        return self._parse_success(accum, consumed=True)
+        return self._parse_success([accum], consumed=True)
 
     @property
     def expected(self):
@@ -217,7 +219,7 @@ class RawDigitParser(Parser):
     def do_parse(self, iterator):
         value = next(iterator)
         if str.isdigit(value):
-            return self._parse_success(int(value), consumed=True)
+            return self._parse_success([int(value)], consumed=True)
         return self._parse_failure(value, consumed=True)
 
     @property
@@ -236,7 +238,7 @@ class EndOfFileParser(Parser):
                 iterator.rewind_to(point)
                 return self._parse_failure(value)
             except StopIteration:
-                return self._parse_success(None)
+                return self._parse_success([])
 
     @property
     def expected(self):
@@ -272,31 +274,34 @@ class AttemptParser(SingleChildParser):
 
 
 class MapParser(SingleChildParser):
-    def __init__(self, child, func, spread_args=False):
+    def __init__(self, child, func):
         super().__init__(child)
         self._func = func
-        self._spread_args = spread_args
 
     def do_parse(self, iterator):
         result = super().do_parse(iterator)
         if isinstance(result, Success):
-            if self._spread_args:
-                result.value = self._func(*result.value)
+            if len(result.values) == 1:
+                result.values = [self._func(result.values[0])]
             else:
-                result.value = self._func(result.value)
+                result.values = [self._func(*result.values)]
         return result
 
 
 class FilterParser(SingleChildParser):
-    def __init__(self, child, pred, spread_args=False):
+    def __init__(self, child, pred):
         super().__init__(child)
         self._pred = pred
-        self._spread_args = spread_args
 
     def do_parse(self, iterator):
         result = super().do_parse(iterator)
-        if isinstance(result, Success) and not self._pred(result.value):
-            return self._parse_failure('bad input', consumed=True)
+        if isinstance(result, Success):
+            if len(result.values) == 1:
+                passes = self._pred(result.values[0])
+            else:
+                passes = self._pred(*result.values)
+            if not passes:
+                return self._parse_failure('bad input', consumed=True)
         return result
 
     @property
@@ -319,7 +324,7 @@ class RepeatParser(SingleChildParser):
             consumed = consumed or result.consumed
             expected = result.expected
             if isinstance(result, Success):
-                results.append(result.value)
+                results.extend(result.values)
             else:
                 if len(results) < self._min_results:
                     return Failure(
@@ -328,7 +333,7 @@ class RepeatParser(SingleChildParser):
                         expected=expected
                     )
                 break
-        return Success(results, consumed=consumed, expected=expected)
+        return Success([results], consumed=consumed, expected=expected)
 
 
 class LabeledParser(SingleChildParser):
@@ -416,9 +421,7 @@ class ChainParser(MultiChildParser):
                 result.consumed = consumed
                 return result
             if not parser.noise:
-                results.append(result.value)
-        if len(results) == 1:
-            return Success(results[0], consumed=consumed)
+                results.extend(result.values)
         return Success(results, consumed=consumed)
 
     @property
@@ -427,6 +430,3 @@ class ChainParser(MultiChildParser):
 
     def __and__(self, other):
         return self.combine(other)
-
-    def map(self, func):
-        return MapParser(self, func, spread_args=True)
