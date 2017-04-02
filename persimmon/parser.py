@@ -361,7 +361,7 @@ class LabeledParser(Parser):
 
     def do_parse(self, iterator):
         result = self._parser.do_parse(iterator)
-        if isinstance(result, Failure) and not result.consumed:
+        if not result.consumed:
             result.expected = [self._label]
         return result
 
