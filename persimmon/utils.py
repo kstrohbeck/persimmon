@@ -246,14 +246,21 @@ class RewindPoint:
 
 
 class RewindIterator(collections.Iterator):
+    """Wrapper around some backing type that provides standard iterator features
+    as well as allowing for setting and deleting backtracking points.
+    """
+
     def __init__(self):
+        """Create a new rewind iterator."""
         self._points = []
 
     def __next__(self):
+        """Return the next element of the backing data."""
         raise NotImplementedError
 
     @property
     def index(self):
+        """The current index in the data."""
         raise NotImplementedError
 
     @index.setter
@@ -261,19 +268,50 @@ class RewindIterator(collections.Iterator):
         raise NotImplementedError
 
     def rewind_point(self):
+        """Create a new rewind point at the current index.
+
+        The point can be used to rewind the iterator to the state it was at when
+        the point was created.
+
+        :return: the rewind point
+        """
         point = RewindPoint(self, self.index)
         self._points.append(point)
         return point
 
     def rewind_to(self, point):
+        """Rewind the iterator to the given point.
+
+        :param point: the point to rewind to
+        :return:
+        """
         self.index = point.index
 
     def forget(self, point):
+        """Forget a point.
+
+        Once a point is forgotten, it can no longer be rewound to. Forgetting a
+        point does not affect any other points, even points recorded before it
+        or at the same time.
+
+        :param point: the point to forget
+        """
         self._points.remove(point)
 
 
 class StreamRewindIterator(RewindIterator):
+    """Wrapper around an iterable/iterator that allows backtracking.
+
+    This iterator attempts to preserve as little data as possible. It guarantees
+    the validity of a rewind point for that point's entire lifetime, but data
+    before the first rewind point can be deleted at any time.
+    """
+
     def __init__(self, iterable):
+        """Create a new stream rewind iterator.
+
+        :param iterable: the iterable stream to wrap.
+        """
         super().__init__()
         self._iterator = iter(iterable)
         self._store = Zipper()
@@ -312,6 +350,13 @@ class StreamRewindIterator(RewindIterator):
 
 
 class StaticRewindIterator(RewindIterator):
+    """Wrapper around a static store of data that allows backtracking.
+
+    The wrapper does not mutate the backing data. This means that it won't
+    delete any elements, but rewinding past the first recording point is not
+    supported.
+    """
+
     def __init__(self, data):
         super().__init__()
         self._data = data
