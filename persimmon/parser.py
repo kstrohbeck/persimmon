@@ -44,7 +44,7 @@ class Parser:
         return Failure(unexpected, consumed, expected)
 
     def parse(self, iterable):
-        iterator = utils.RewindIterator(iter(iterable))
+        iterator = utils.StreamRewindIterator(iter(iterable))
         result = self.do_parse(iterator)
         if isinstance(result, Success):
             return result.value
