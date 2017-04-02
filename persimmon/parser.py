@@ -184,27 +184,6 @@ class RawSequenceParser(Parser):
         return [str(self._seq)]
 
 
-class AttemptParser(Parser):
-    def __init__(self, parser):
-        super().__init__(noise=parser.noise)
-        self._parser = parser
-
-    def do_parse(self, iterator):
-        with iterator.rewind_point() as point:
-            try:
-                result = self._parser.do_parse(iterator)
-                if isinstance(result, Failure):
-                    iterator.rewind_to(point)
-                result.consumed = False
-                return result
-            except StopIteration:
-                iterator.rewind_to(point)
-                return self._parse_failure('end of input')
-
-    def expected(self):
-        return self._parser.expected()
-
-
 class RawDigitParser(Parser):
     def do_parse(self, iterator):
         value = next(iterator)
@@ -307,15 +286,41 @@ class ChainParser(MultiChildParser):
         return MapParser(self, func, spread_args=True)
 
 
-class MapParser(Parser):
-    def __init__(self, parser, func, spread_args=False):
-        super().__init__(noise=parser.noise)
-        self._parser = parser
+class SingleChildParser(Parser):
+    def __init__(self, child, noise=False):
+        noise = noise or child.noise
+        super().__init__(noise=noise)
+        self._child = child
+
+    def do_parse(self, iterator):
+        return self._child.do_parse(iterator)
+
+    def expected(self):
+        return self._child.expected()
+
+
+class AttemptParser(SingleChildParser):
+    def do_parse(self, iterator):
+        with iterator.rewind_point() as point:
+            try:
+                result = super().do_parse(iterator)
+                if isinstance(result, Failure):
+                    iterator.rewind_to(point)
+                result.consumed = False
+                return result
+            except StopIteration:
+                iterator.rewind_to(point)
+                return self._parse_failure('end of input')
+
+
+class MapParser(SingleChildParser):
+    def __init__(self, child, func, spread_args=False):
+        super().__init__(child)
         self._func = func
         self._spread_args = spread_args
 
     def do_parse(self, iterator):
-        result = self._parser.do_parse(iterator)
+        result = super().do_parse(iterator)
         if isinstance(result, Success):
             if self._spread_args:
                 result.value = self._func(*result.value)
@@ -323,19 +328,15 @@ class MapParser(Parser):
                 result.value = self._func(result.value)
         return result
 
-    def expected(self):
-        return self._parser.expected()
 
-
-class FilterParser(Parser):
-    def __init__(self, parser, pred, spread_args=False):
-        super().__init__(noise=parser.noise)
-        self._parser = parser
+class FilterParser(SingleChildParser):
+    def __init__(self, child, pred, spread_args=False):
+        super().__init__(child)
         self._pred = pred
         self._spread_args = spread_args
 
     def do_parse(self, iterator):
-        result = self._parser.do_parse(iterator)
+        result = super().do_parse(iterator)
         if isinstance(result, Success) and not self._pred(result.value):
             return self._parse_failure('bad input', consumed=True)
         return result
@@ -344,10 +345,9 @@ class FilterParser(Parser):
         return []
 
 
-class RepeatParser(Parser):
-    def __init__(self, parser, min_results=0, max_results=None):
-        super().__init__(noise=parser.noise)
-        self._parser = parser
+class RepeatParser(SingleChildParser):
+    def __init__(self, child, min_results=0, max_results=None):
+        super().__init__(child)
         self._min_results = min_results
         self._max_results = max_results
 
@@ -356,7 +356,7 @@ class RepeatParser(Parser):
         consumed = False
         expected = []
         while self._max_results is None or len(results) < self._max_results:
-            result = self._parser.do_parse(iterator)
+            result = super().do_parse(iterator)
             consumed = consumed or result.consumed
             expected = result.expected
             if isinstance(result, Success):
@@ -371,33 +371,22 @@ class RepeatParser(Parser):
                 break
         return Success(results, consumed=consumed, expected=expected)
 
-    def expected(self):
-        return self._parser.expected()
 
-
-class LabeledParser(Parser):
-    def __init__(self, parser, label):
-        super().__init__(noise=parser.noise)
-        self._parser = parser
+class LabeledParser(SingleChildParser):
+    def __init__(self, child, label):
+        super().__init__(child)
         self._label = label
 
     def do_parse(self, iterator):
-        result = self._parser.do_parse(iterator)
+        result = super().do_parse(iterator)
         if not result.consumed:
-            result.expected = [self._label]
+            result.expected = self.expected()
         return result
 
     def expected(self):
-        return self._label
+        return [self._label]
 
 
-class NoisyParser(Parser):
-    def __init__(self, parser, noise):
-        super().__init__(noise=noise)
-        self._parser = parser
-
-    def do_parse(self, iterator):
-        return self._parser.do_parse(iterator)
-
-    def expected(self):
-        return self._parser.expected()
+class NoisyParser(SingleChildParser):
+    def __init__(self, child, noise):
+        super().__init__(child, noise=noise)
