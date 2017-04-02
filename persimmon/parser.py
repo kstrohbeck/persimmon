@@ -274,7 +274,8 @@ class ChainParser(Parser):
             if isinstance(result, Failure):
                 result.consumed = consumed
                 return result
-            results.append(result.value)
+            if not parser.noise:
+                results.append(result.value)
         return Success(results, consumed=consumed)
 
     def expected(self):
