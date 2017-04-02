@@ -276,6 +276,8 @@ class ChainParser(Parser):
                 return result
             if not parser.noise:
                 results.append(result.value)
+        if len(results) == 1:
+            return Success(results[0], consumed=consumed)
         return Success(results, consumed=consumed)
 
     def expected(self):
