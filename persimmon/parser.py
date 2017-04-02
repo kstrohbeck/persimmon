@@ -70,6 +70,10 @@ class Parser:
         return AnyElemParser()
 
     @staticmethod
+    def elem(el):
+        return AttemptParser(RawElemParser(el))
+
+    @staticmethod
     def sequence(seq):
         return AttemptParser(RawSequenceParser(seq))
 
@@ -145,6 +149,21 @@ class AnyElemParser(Parser):
 
     def expected(self):
         return ['any element']
+
+
+class RawElemParser(Parser):
+    def __init__(self, elem):
+        super().__init__(noise=True)
+        self._elem = elem
+
+    def do_parse(self, iterator):
+        value = next(iterator)
+        if value != self._elem:
+            return self._parse_failure(value, consumed=True)
+        return self._parse_success(value, consumed=True)
+
+    def expected(self):
+        return [self._elem]
 
 
 class RawSequenceParser(Parser):
