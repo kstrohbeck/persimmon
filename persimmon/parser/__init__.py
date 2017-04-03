@@ -2,9 +2,9 @@ from persimmon.parser import factory, result
 
 
 class Parser:
-    def __init__(self, noise, parser_factory):
-        self.noise = noise
+    def __init__(self, parser_factory, noise):
         self._parser_factory = parser_factory
+        self.noise = noise
 
     def do_parse(self, iterator):
         raise NotImplementedError
