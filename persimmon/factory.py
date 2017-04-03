@@ -40,11 +40,11 @@ class ParserFactory:
         )
 
     @abstractmethod
-    def make_choice_parser(self, *parsers):
+    def make_choice_parser(self, parsers):
         pass
 
     @abstractmethod
-    def make_chain_parser(self, *parsers):
+    def make_chain_parser(self, parsers):
         pass
 
     @abstractmethod
@@ -82,7 +82,7 @@ class ParserFactory:
         pass
 
     @abstractmethod
-    def make_repeat_parser(self, value, min_results=0, max_results=None):
+    def make_repeat_parser(self, parser, min_results=0, max_results=None):
         pass
 
     @abstractmethod
