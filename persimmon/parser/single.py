@@ -147,3 +147,15 @@ class NoisyParser(SingleChildParser):
             self._child.transform(transform),
             self.noise
         )
+
+
+class DelayedParser(SingleChildParser):
+    def do_parse(self, iterator):
+        if hasattr(self._child, '__call__'):
+            self._child = self._child(self)
+        return super().do_parse(iterator)
+
+    @property
+    def expected(self):
+        # TODO: is it safe to eval _delayed to get this?
+        return []
