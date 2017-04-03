@@ -1,12 +1,16 @@
-import abc
+from abc import abstractmethod
 
 
 class ParserFactory:
-    @abc.abstractmethod
+    @abstractmethod
+    def make_rewind_iterator(self, data):
+        pass
+
+    @abstractmethod
     def make_success_parser(self, value):
         pass
 
-    @abc.abstractmethod
+    @abstractmethod
     def make_satisfy_parser(self):
         pass
 
@@ -35,15 +39,15 @@ class ParserFactory:
                 .labeled('digit')
         )
 
-    @abc.abstractmethod
+    @abstractmethod
     def make_choice_parser(self, *parsers):
         pass
 
-    @abc.abstractmethod
+    @abstractmethod
     def make_chain_parser(self, *parsers):
         pass
 
-    @abc.abstractmethod
+    @abstractmethod
     def make_sequence_parser(self, seq):
         pass
 
@@ -53,22 +57,42 @@ class ParserFactory:
     def make_default_parser(self, parser, value):
         return parser | self.make_success_parser(value)
 
-    @abc.abstractmethod
+    @abstractmethod
     def make_eof_parser(self):
         pass
 
-    @abc.abstractmethod
+    @abstractmethod
     def make_attempt_parser(self, parser):
         pass
 
-    @abc.abstractmethod
+    @abstractmethod
     def make_map_parser(self, parser, func):
         pass
 
-    @abc.abstractmethod
+    @abstractmethod
+    def make_filter_parser(self, parser, pred):
+        pass
+
+    @abstractmethod
     def combine_choice(self, left, right):
         pass
 
-    @abc.abstractmethod
+    @abstractmethod
     def combine_chain(self, left, right):
+        pass
+
+    @abstractmethod
+    def make_repeat_parser(self, value, min_results=0, max_results=None):
+        pass
+
+    @abstractmethod
+    def make_labeled_parser(self, parser, label):
+        pass
+
+    @abstractmethod
+    def make_noisy_parser(self, parser, noise):
+        pass
+
+    @abstractmethod
+    def make_delayed_parser(self, parser_func):
         pass
