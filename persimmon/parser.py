@@ -182,27 +182,6 @@ class SuccessParser(Parser):
         return []
 
 
-def map_step(func):
-    def run(value):
-        return True, func(value)
-    return run
-
-
-def filter_step(pred):
-    def run(value):
-        return pred(value), value
-    return run
-
-
-def transform_step(transform):
-    def run(value):
-        new_value = transform(value)
-        if new_value is None:
-            return False, value
-        return True, new_value
-    return run
-
-
 class SatisfyParser(Parser):
     def __init__(self, steps=None):
         super().__init__(noise=False)
@@ -228,13 +207,33 @@ class SatisfyParser(Parser):
         return []
 
     def map(self, func):
-        return SatisfyParser(self._steps + [map_step(func)])
+        return self.with_step(self.map_step(func))
 
     def filter(self, pred):
-        return SatisfyParser(self._steps + [filter_step(pred)])
+        return self.with_step(self.filter_step(pred))
 
     def transform(self, transform):
-        return SatisfyParser(self._steps + [transform_step(transform)])
+        return self.with_step(self.transform_step(transform))
+
+    def with_step(self, step):
+        return SatisfyParser(self._steps + [step])
+
+    @staticmethod
+    def map_step(func):
+        return lambda value: (True, func(value))
+
+    @staticmethod
+    def filter_step(pred):
+        return lambda value: (pred(value), value)
+
+    @staticmethod
+    def transform_step(transform):
+        def run(value):
+            new_value = transform(value)
+            if new_value is None:
+                return False, value
+            return True, new_value
+        return run
 
 
 class RawSequenceParser(Parser):
