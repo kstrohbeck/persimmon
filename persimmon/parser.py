@@ -66,18 +66,12 @@ class Parser:
         return (self & (sep & self).zero_or_more).map(lambda h, t: [h] + t)
 
     def at_least(self, min_results):
-        return self._parser_factory.make_repeat_parser(
-            self,
-            min_results=min_results
-        )
+        return self.repeat_between(min_results=min_results)
 
     def at_most(self, max_results):
-        return self._parser_factory.make_repeat_parser(
-            self,
-            max_results=max_results
-        )
+        return self.repeat_between(max_results=max_results)
 
-    def repeat_between(self, min_results, max_results):
+    def repeat_between(self, min_results=0, max_results=None):
         return self._parser_factory.make_repeat_parser(
             self,
             min_results=min_results,
