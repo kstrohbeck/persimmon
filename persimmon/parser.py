@@ -9,17 +9,13 @@ class Result:
 
 class Success(Result):
     def __init__(self, values, consumed=False, expected=None):
-        if expected is None:
-            expected = []
-        super().__init__(consumed, expected)
+        super().__init__(consumed, expected or [])
         self.values = values
 
 
 class Failure(Result):
     def __init__(self, unexpected, consumed=False, expected=None):
-        if expected is None:
-            expected = []
-        super().__init__(consumed, expected)
+        super().__init__(consumed, expected or [])
         self.unexpected = unexpected
 
 
@@ -35,14 +31,10 @@ class Parser:
         raise NotImplementedError
 
     def _parse_success(self, values, consumed=False, expected=None):
-        if expected is None:
-            expected = self.expected
-        return Success(values, consumed, expected)
+        return Success(values, consumed, expected or self.expected)
 
     def _parse_failure(self, unexpected, consumed=False, expected=None):
-        if expected is None:
-            expected = self.expected
-        return Failure(unexpected, consumed, expected)
+        return Failure(unexpected, consumed, expected or self.expected)
 
     def parse(self, data):
         iterator = utils.RewindIterator.make_rewind_iterator(data)
@@ -214,7 +206,7 @@ def transform_step(transform):
 class SatisfyParser(Parser):
     def __init__(self, steps=None):
         super().__init__(noise=False)
-        self._steps = [] if steps is None else steps
+        self._steps = steps or []
 
     def do_parse(self, iterator):
         with iterator.rewind_point() as point:
@@ -446,8 +438,7 @@ class ChoiceParser(MultiChildParser):
             if result.consumed:
                 return result
             if isinstance(result, Success):
-                if first_success is None:
-                    first_success = result
+                first_success = first_success or result
             else:
                 last_failure = result
             expected.extend(result.expected)
