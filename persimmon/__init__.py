@@ -11,3 +11,5 @@ digit = Parser.digit()
 eof = Parser.eof()
 one_of = Parser.one_of
 none_of = Parser.none_of
+choice = Parser.choice
+delayed = Parser.delayed
