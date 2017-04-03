@@ -1,15 +1,15 @@
-from persimmon.parser import Parser
+from persimmon.parser import BaseParser
 
 
-success = Parser.success
-any_elem = Parser.any_elem()
-satisfy = Parser.satisfy
-elem = Parser.elem
-sequence = Parser.sequence
-string = Parser.string
-digit = Parser.digit()
-eof = Parser.eof()
-one_of = Parser.one_of
-none_of = Parser.none_of
-choice = Parser.choice
-delayed = Parser.delayed
+success = BaseParser.success
+any_elem = BaseParser.any_elem()
+satisfy = BaseParser.satisfy
+elem = BaseParser.elem
+sequence = BaseParser.sequence
+string = BaseParser.string
+digit = BaseParser.digit()
+eof = BaseParser.eof()
+one_of = BaseParser.one_of
+none_of = BaseParser.none_of
+choice = BaseParser.choice
+delayed = BaseParser.delayed

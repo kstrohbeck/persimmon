@@ -19,12 +19,12 @@ class Failure(Result):
         self.unexpected = unexpected
 
 
-class Parser:
+class BaseParser:
     def __init__(self, noise=False):
         self.noise = noise
 
     def do_parse(self, iterator):
-        pass
+        raise NotImplementedError
 
     @property
     def expected(self):
@@ -101,7 +101,7 @@ class Parser:
         return AttemptParser(self)
 
     def default(self, value):
-        return self | Parser.success(value)
+        return self | BaseParser.success(value)
 
     def map(self, func):
         return MapParser(self, func)
@@ -158,7 +158,7 @@ class Parser:
 
     @property
     def exists(self):
-        return self.map(lambda _: True) | Parser.success(False)
+        return self.map(lambda _: True) | BaseParser.success(False)
 
     @staticmethod
     def choice(*parsers):
@@ -169,7 +169,7 @@ class Parser:
         return DelayedParser(parser_func)
 
 
-class SuccessParser(Parser):
+class SuccessParser(BaseParser):
     def __init__(self, value):
         super().__init__()
         self._value = value
@@ -182,7 +182,7 @@ class SuccessParser(Parser):
         return []
 
 
-class SatisfyParser(Parser):
+class SatisfyParser(BaseParser):
     def __init__(self, steps=None):
         super().__init__(noise=False)
         self._steps = steps or []
@@ -236,7 +236,7 @@ class SatisfyParser(Parser):
         return run
 
 
-class RawSequenceParser(Parser):
+class RawSequenceParser(BaseParser):
     def __init__(self, seq):
         super().__init__(noise=True)
         self._seq = seq
@@ -255,7 +255,7 @@ class RawSequenceParser(Parser):
         return [str(self._seq)]
 
 
-class EndOfFileParser(Parser):
+class EndOfFileParser(BaseParser):
     def __init__(self):
         super().__init__(noise=True)
 
@@ -273,7 +273,7 @@ class EndOfFileParser(Parser):
         return ['end of file']
 
 
-class SingleChildParser(Parser):
+class SingleChildParser(BaseParser):
     def __init__(self, child, noise=None):
         noise = child.noise if noise is None else noise
         super().__init__(noise=noise)
@@ -403,10 +403,13 @@ class NoisyParser(SingleChildParser):
         return NoisyParser(self._child.transform(transform), self.noise)
 
 
-class MultiChildParser(Parser):
+class MultiChildParser(BaseParser):
     def __init__(self, *parsers):
         super().__init__(noise=all(p.noise for p in parsers))
         self._parsers = parsers
+
+    def do_parse(self, iterator):
+        raise NotImplementedError
 
     @property
     def expected(self):
@@ -477,7 +480,7 @@ class ChainParser(MultiChildParser):
         return self.combine(other)
 
 
-class DelayedParser(Parser):
+class DelayedParser(BaseParser):
     def __init__(self, parser):
         super().__init__()
         self._parser = parser
