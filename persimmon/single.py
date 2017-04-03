@@ -1,4 +1,4 @@
-from persimmon.parser import result, Parser
+from persimmon import result, Parser
 
 
 class SingleChildParser(Parser):
