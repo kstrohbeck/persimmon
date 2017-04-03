@@ -1,4 +1,5 @@
-from persimmon import result, Parser
+from persimmon import result
+from persimmon.parser import Parser
 
 
 class MultiChildParser(Parser):
