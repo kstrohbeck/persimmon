@@ -417,7 +417,7 @@ class MultiChildParser(Parser):
 
     def combine(self, other):
         if isinstance(other, self.__class__):
-            return self.extend(other)
+            return self.extend(other._parsers)
         return self.append(other)
 
     def prepend(self, parser):
