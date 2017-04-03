@@ -277,8 +277,8 @@ class EndOfFileParser(Parser):
 
 
 class SingleChildParser(Parser):
-    def __init__(self, child, noise=False):
-        noise = noise or child.noise
+    def __init__(self, child, noise=None):
+        noise = child.noise if noise is None else noise
         super().__init__(noise=noise)
         self._child = child
 
@@ -306,7 +306,7 @@ class AttemptParser(SingleChildParser):
 
 class MapParser(SingleChildParser):
     def __init__(self, child, func):
-        super().__init__(child)
+        super().__init__(child, noise=False)
         self._func = func
 
     def do_parse(self, iterator):
