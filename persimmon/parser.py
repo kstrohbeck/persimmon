@@ -131,6 +131,12 @@ class Parser:
     def one_or_more(self):
         return RepeatParser(self, min_results=1)
 
+    def zero_or_more_sep_by(self, sep):
+        return self.one_or_more_sep_by(sep).default([])
+
+    def one_or_more_sep_by(self, sep):
+        return (self & (sep & self).zero_or_more).map(lambda h, t: [h] + t)
+
     def at_least(self, min_results):
         return RepeatParser(self, min_results=min_results)
 
