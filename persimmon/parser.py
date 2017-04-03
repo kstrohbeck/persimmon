@@ -1,3 +1,5 @@
+import abc
+
 from persimmon import utils
 
 
@@ -19,9 +21,32 @@ class Failure(Result):
         self.unexpected = unexpected
 
 
+class ParserFactory:
+    @abc.abstractmethod
+    def make_success_parser(self, value):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def make_satisfy_parser(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def make_choice_parser(self, *parsers):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def make_chain_parser(self, *parsers):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def make_sequence_parser(self, seq):
+        raise NotImplementedError
+
+
 class BaseParser:
-    def __init__(self, noise=False):
+    def __init__(self, noise=False, parser_factory=None):
         self.noise = noise
+        self._parser_factory = parser_factory
 
     def do_parse(self, iterator):
         raise NotImplementedError
@@ -170,8 +195,8 @@ class BaseParser:
 
 
 class SuccessParser(BaseParser):
-    def __init__(self, value):
-        super().__init__()
+    def __init__(self, value, parser_factory=None):
+        super().__init__(parser_factory=parser_factory)
         self._value = value
 
     def do_parse(self, iterator):
@@ -183,8 +208,8 @@ class SuccessParser(BaseParser):
 
 
 class SatisfyParser(BaseParser):
-    def __init__(self, steps=None):
-        super().__init__(noise=False)
+    def __init__(self, steps=None, parser_factory=None):
+        super().__init__(noise=False, parser_factory=parser_factory)
         self._steps = steps or []
 
     def do_parse(self, iterator):
@@ -237,8 +262,8 @@ class SatisfyParser(BaseParser):
 
 
 class RawSequenceParser(BaseParser):
-    def __init__(self, seq):
-        super().__init__(noise=True)
+    def __init__(self, seq, parser_factory=None):
+        super().__init__(noise=True, parser_factory=parser_factory)
         self._seq = seq
 
     def do_parse(self, iterator):
@@ -256,8 +281,8 @@ class RawSequenceParser(BaseParser):
 
 
 class EndOfFileParser(BaseParser):
-    def __init__(self):
-        super().__init__(noise=True)
+    def __init__(self, parser_factory=None):
+        super().__init__(noise=True, parser_factory=parser_factory)
 
     def do_parse(self, iterator):
         with iterator.rewind_point() as point:
@@ -274,9 +299,9 @@ class EndOfFileParser(BaseParser):
 
 
 class SingleChildParser(BaseParser):
-    def __init__(self, child, noise=None):
+    def __init__(self, child, noise=None, parser_factory=None):
         noise = child.noise if noise is None else noise
-        super().__init__(noise=noise)
+        super().__init__(noise=noise, parser_factory=parser_factory)
         self._child = child
 
     def do_parse(self, iterator):
@@ -288,6 +313,9 @@ class SingleChildParser(BaseParser):
 
 
 class AttemptParser(SingleChildParser):
+    def __init__(self, child, parser_factory=None):
+        super().__init__(child, parser_factory=parser_factory)
+
     def do_parse(self, iterator):
         with iterator.rewind_point() as point:
             try:
@@ -302,8 +330,8 @@ class AttemptParser(SingleChildParser):
 
 
 class MapParser(SingleChildParser):
-    def __init__(self, child, func):
-        super().__init__(child, noise=False)
+    def __init__(self, child, func, parser_factory=None):
+        super().__init__(child, noise=False, parser_factory=parser_factory)
         self._func = func
 
     def do_parse(self, iterator):
@@ -317,8 +345,8 @@ class MapParser(SingleChildParser):
 
 
 class FilterParser(SingleChildParser):
-    def __init__(self, child, pred):
-        super().__init__(child)
+    def __init__(self, child, pred, parser_factory=None):
+        super().__init__(child, parser_factory=parser_factory)
         self._pred = pred
 
     def do_parse(self, iterator):
@@ -338,8 +366,8 @@ class FilterParser(SingleChildParser):
 
 
 class RepeatParser(SingleChildParser):
-    def __init__(self, child, min_results=0, max_results=None):
-        super().__init__(child)
+    def __init__(self, child, min_results=0, max_results=None, parser_factory=None):
+        super().__init__(child, parser_factory=parser_factory)
         self._min_results = min_results
         self._max_results = max_results
 
@@ -365,8 +393,8 @@ class RepeatParser(SingleChildParser):
 
 
 class LabeledParser(SingleChildParser):
-    def __init__(self, child, label):
-        super().__init__(child)
+    def __init__(self, child, label, parser_factory=None):
+        super().__init__(child, parser_factory=parser_factory)
         self._label = label
 
     def do_parse(self, iterator):
@@ -390,8 +418,8 @@ class LabeledParser(SingleChildParser):
 
 
 class NoisyParser(SingleChildParser):
-    def __init__(self, child, noise):
-        super().__init__(child, noise=noise)
+    def __init__(self, child, noise, parser_factory=None):
+        super().__init__(child, noise=noise, parser_factory=parser_factory)
 
     def map(self, func):
         return NoisyParser(self._child.map(func), self.noise)
@@ -404,8 +432,11 @@ class NoisyParser(SingleChildParser):
 
 
 class MultiChildParser(BaseParser):
-    def __init__(self, *parsers):
-        super().__init__(noise=all(p.noise for p in parsers))
+    def __init__(self, parsers, parser_factory=None):
+        super().__init__(
+            noise=all(p.noise for p in parsers),
+            parser_factory=parser_factory
+        )
         self._parsers = parsers
 
     def do_parse(self, iterator):
@@ -431,6 +462,9 @@ class MultiChildParser(BaseParser):
 
 
 class ChoiceParser(MultiChildParser):
+    def __init__(self, parsers, parser_factory):
+        super().__init__(parsers, parser_factory=parser_factory)
+
     def do_parse(self, iterator):
         first_success = None
         last_failure = None
@@ -459,6 +493,9 @@ class ChoiceParser(MultiChildParser):
 
 
 class ChainParser(MultiChildParser):
+    def __init__(self, parsers, parser_factory=None):
+        super().__init__(parsers, parser_factory=parser_factory)
+
     def do_parse(self, iterator):
         results = []
         consumed = False
@@ -481,8 +518,8 @@ class ChainParser(MultiChildParser):
 
 
 class DelayedParser(BaseParser):
-    def __init__(self, parser):
-        super().__init__()
+    def __init__(self, parser, parser_factory=None):
+        super().__init__(parser_factory=parser_factory)
         self._parser = parser
 
     def do_parse(self, iterator):
