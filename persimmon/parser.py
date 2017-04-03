@@ -162,6 +162,14 @@ class Parser:
     def exists(self):
         return self.map(lambda _: True) | Parser.success(False)
 
+    @staticmethod
+    def choice(*parsers):
+        return ChoiceParser(*parsers)
+
+    @staticmethod
+    def delayed(parser_func):
+        return DelayedParser(parser_func)
+
 
 class SuccessParser(Parser):
     def __init__(self, value):
@@ -471,3 +479,19 @@ class ChainParser(MultiChildParser):
 
     def __and__(self, other):
         return self.combine(other)
+
+
+class DelayedParser(Parser):
+    def __init__(self, parser):
+        super().__init__()
+        self._parser = parser
+
+    def do_parse(self, iterator):
+        if hasattr(self._parser, '__call__'):
+            self._parser = self._parser(self)
+        return self._parser.do_parse(iterator)
+
+    @property
+    def expected(self):
+        # TODO: is it safe to eval _delayed to get this?
+        return []
