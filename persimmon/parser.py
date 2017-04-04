@@ -49,7 +49,7 @@ class Parser:
         return self._parser_factory.make_filter_parser(self, pred)
 
     def transform(self, transform):
-        return self.map(transform).filter(lambda x: x is not None)
+        return self._parser_factory.make_transform_parser(self, transform)
 
     @property
     def zero_or_more(self):

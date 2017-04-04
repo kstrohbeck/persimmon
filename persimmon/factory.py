@@ -74,6 +74,10 @@ class ParserFactory:
         pass
 
     @abstractmethod
+    def make_transform_parser(self, parser, transform):
+        pass
+
+    @abstractmethod
     def combine_choice(self, left, right):
         pass
 

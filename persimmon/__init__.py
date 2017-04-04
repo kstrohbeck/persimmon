@@ -36,6 +36,9 @@ class StandardParserFactory(ParserFactory):
     def make_filter_parser(self, parser, pred):
         return single.FilterParser(self, parser, pred)
 
+    def make_transform_parser(self, parser, transform):
+        return single.TransformParser(self, parser, transform)
+
     def combine_choice(self, left, right):
         # TODO: how to combine?
         pass

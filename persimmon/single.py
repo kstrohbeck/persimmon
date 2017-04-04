@@ -69,6 +69,24 @@ class FilterParser(SingleChildParser):
         return []
 
 
+class TransformParser(SingleChildParser):
+    def __init__(self, parser_factory, child, transform):
+        super().__init__(parser_factory, None, child)
+        self._transform = transform
+
+    def do_parse(self, iterator):
+        res = super().do_parse(iterator)
+        if isinstance(res, result.Success):
+            if len(res.values) == 1:
+                new_value = self._transform(res.values[0])
+            else:
+                new_value = self._transform(*res.values)
+            if new_value is None:
+                return self._parse_failure('bad input', consumed=True)
+            result.values = [new_value]
+        return res
+
+
 class RepeatParser(SingleChildParser):
     def __init__(self, parser_factory, child, min_results=0, max_results=None):
         super().__init__(parser_factory, None, child)
