@@ -105,13 +105,13 @@ class RepeatParser(SingleChildParser):
                 results.extend(res.values)
             else:
                 if len(results) < self._min_results:
-                    return result.Failure(
+                    return self._parse_failure(
                         res.unexpected,
-                        consumed=consumed,
-                        expected=expected
+                        consumed,
+                        expected
                     )
                 break
-        return result.Success([results], consumed=consumed, expected=expected)
+        return self._parse_success([results], consumed, expected)
 
 
 class LabeledParser(SingleChildParser):
