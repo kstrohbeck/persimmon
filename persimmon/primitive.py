@@ -1,4 +1,3 @@
-from persimmon import result
 from persimmon.parser import Parser
 
 
@@ -8,7 +7,7 @@ class SuccessParser(Parser):
         self._value = value
 
     def do_parse(self, iterator):
-        return result.Success([self._value])
+        return self._parse_success([self._value])
 
     @property
     def expected(self):
