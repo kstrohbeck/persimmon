@@ -69,7 +69,7 @@ class ChainParser(MultiChildParser):
                 return res
             if not parser.noise:
                 results.extend(res.values)
-        return result.Success(results, consumed=consumed)
+        return self._parse_success(results, consumed)
 
     @property
     def expected(self):
