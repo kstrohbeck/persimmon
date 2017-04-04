@@ -1,4 +1,3 @@
-from persimmon import result
 from persimmon.parser import Parser
 
 
@@ -38,7 +37,7 @@ class ChoiceParser(MultiChildParser):
             res = parser.do_parse(iterator)
             if res.consumed:
                 return res
-            if isinstance(res, result.Success):
+            if res.is_success:
                 first_success = first_success or res
             else:
                 last_failure = res
@@ -64,7 +63,7 @@ class ChainParser(MultiChildParser):
         for parser in self._parsers:
             res = parser.do_parse(iterator)
             consumed = consumed or res.consumed
-            if isinstance(res, result.Failure):
+            if not res.is_success:
                 res.consumed = consumed
                 return res
             if not parser.noise:

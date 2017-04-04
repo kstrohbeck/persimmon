@@ -1,4 +1,3 @@
-from persimmon import result
 from persimmon.parser import Parser
 
 
@@ -24,7 +23,7 @@ class AttemptParser(SingleChildParser):
         with iterator.rewind_point() as point:
             try:
                 res = super().do_parse(iterator)
-                if isinstance(res, result.Failure):
+                if not res.is_success:
                     iterator.rewind_to(point)
                 res.consumed = False
                 return res
@@ -40,7 +39,7 @@ class MapParser(SingleChildParser):
 
     def do_parse(self, iterator):
         res = super().do_parse(iterator)
-        if isinstance(res, result.Success):
+        if res.is_success:
             if len(res.values) == 1:
                 res.values = [self._func(res.values[0])]
             else:
@@ -55,7 +54,7 @@ class FilterParser(SingleChildParser):
 
     def do_parse(self, iterator):
         res = super().do_parse(iterator)
-        if isinstance(res, result.Success):
+        if res.is_success:
             if len(res.values) == 1:
                 passes = self._pred(res.values[0])
             else:
@@ -76,14 +75,14 @@ class TransformParser(SingleChildParser):
 
     def do_parse(self, iterator):
         res = super().do_parse(iterator)
-        if isinstance(res, result.Success):
+        if res.is_success:
             if len(res.values) == 1:
                 new_value = self._transform(res.values[0])
             else:
                 new_value = self._transform(*res.values)
             if new_value is None:
                 return self._parse_failure('bad input', consumed=True)
-            result.values = [new_value]
+            res.values = [new_value]
         return res
 
 
@@ -101,7 +100,7 @@ class RepeatParser(SingleChildParser):
             res = super().do_parse(iterator)
             consumed = consumed or res.consumed
             expected = res.expected
-            if isinstance(res, result.Success):
+            if res.is_success:
                 results.extend(res.values)
             else:
                 if len(results) < self._min_results:
