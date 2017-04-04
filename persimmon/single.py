@@ -111,43 +111,31 @@ class LabeledParser(SingleChildParser):
     def expected(self):
         return [self._label]
 
+    def _inject(self, parser):
+        return self._parser_factory.make_labeled_parser(parser, self._label)
+
     def map(self, func):
-        return self._parser_factory.make_labeled_parser(
-            self._child.map(func),
-            self._label
-        )
+        return self._inject(self._child.map(func))
 
     def filter(self, pred):
-        return self._parser_factory.make_labeled_parser(
-            self._child.filter(pred),
-            self._label
-        )
+        return self._inject(self._child.filter(pred))
 
     def transform(self, transform):
-        return self._parser_factory.make_labeled_parser(
-            self._child.transform(transform),
-            self._label
-        )
+        return self._inject(self._child.transform(transform))
 
 
 class NoisyParser(SingleChildParser):
+    def _inject(self, parser):
+        return self._parser_factory.make_noisy_parser(parser, self.noise)
+
     def map(self, func):
-        return self._parser_factory.make_noisy_parser(
-            self._child.map(func),
-            self.noise
-        )
+        return self._inject(self._child.map(func))
 
     def filter(self, pred):
-        return self._parser_factory.make_noisy_parser(
-            self._child.filter(pred),
-            self.noise
-        )
+        return self._inject(self._child.filter(pred))
 
     def transform(self, transform):
-        return self._parser_factory.make_noisy_parser(
-            self._child.transform(transform),
-            self.noise
-        )
+        return self._inject(self._child.transform(transform))
 
 
 class DelayedParser(SingleChildParser):
