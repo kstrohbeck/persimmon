@@ -9,7 +9,7 @@ if path.exists('README.rst'):
 
 setup(
     name='persimmon',
-    version='0.0.2',
+    version='0.1.0',
     author='Kyle Strohbeck',
     author_email='kstrohbeck@gmail.com',
     description='Idiomatic parser combinators, Python-style.',
