@@ -28,7 +28,8 @@ class Parser:
             if len(res.values) == 1:
                 return res.values[0]
             return res.values
-        print('Parsing failure: unexpected {}'.format(res.unexpected))
+        print('Parsing failure: unexpected "{}" at {}'.format(res.unexpected,
+                                                            res.position))
         print('Expected: {}'.format(', '.join(res.expected)))
 
     def __or__(self, other):
