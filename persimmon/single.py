@@ -29,7 +29,7 @@ class AttemptParser(SingleChildParser):
                 return res
             except StopIteration:
                 iterator.rewind_to(point)
-                return self._parse_failure('end of input')
+                return self._parse_failure('end of input', iterator.position)
 
 
 class MapParser(SingleChildParser):
@@ -60,7 +60,8 @@ class FilterParser(SingleChildParser):
             else:
                 passes = self._pred(*res.values)
             if not passes:
-                return self._parse_failure('bad input', consumed=True)
+                return self._parse_failure('bad input', iterator.position,
+                                           consumed=True)
         return res
 
     @property
@@ -81,7 +82,8 @@ class TransformParser(SingleChildParser):
             else:
                 new_value = self._transform(*res.values)
             if new_value is None:
-                return self._parse_failure('bad input', consumed=True)
+                return self._parse_failure('bad input', iterator.position,
+                                           consumed=True)
             res.values = [new_value]
         return res
 
@@ -106,6 +108,7 @@ class RepeatParser(SingleChildParser):
                 if len(results) < self._min_results:
                     return self._parse_failure(
                         res.unexpected,
+                        iterator.position,
                         consumed,
                         expected
                     )

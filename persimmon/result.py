@@ -19,9 +19,10 @@ class Success(Result):
 
 
 class Failure(Result):
-    def __init__(self, unexpected, consumed=False, expected=None):
+    def __init__(self, unexpected, position, consumed=False, expected=None):
         super().__init__(consumed, expected or [])
         self.unexpected = unexpected
+        self.position = position
 
     @property
     def is_success(self):

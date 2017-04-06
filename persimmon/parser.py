@@ -16,8 +16,10 @@ class Parser:
     def _parse_success(self, values, consumed=False, expected=None):
         return result.Success(values, consumed, expected or self.expected)
 
-    def _parse_failure(self, unexpected, consumed=False, expected=None):
-        return result.Failure(unexpected, consumed, expected or self.expected)
+    def _parse_failure(self, unexpected, position, consumed=False,
+                       expected=None):
+        return result.Failure(unexpected, position, consumed,
+                              expected or self.expected)
 
     def parse(self, data):
         iterator = self._parser_factory.make_rewind_iterator(data)

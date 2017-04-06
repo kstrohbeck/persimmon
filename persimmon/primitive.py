@@ -28,11 +28,11 @@ class SatisfyParser(Parser):
                     passes, value = step(value)
                     if not passes:
                         iterator.rewind_to(point)
-                        return self._parse_failure(initial)
+                        return self._parse_failure(initial, iterator.position)
                 return self._parse_success([value], consumed=True)
             except StopIteration:
                 iterator.rewind_to(point)
-                return self._parse_failure('end of input')
+                return self._parse_failure('end of input', iterator.position)
 
     @property
     def expected(self):
@@ -79,7 +79,8 @@ class RawSequenceParser(Parser):
             value = next(iterator)
             accum.append(value)
             if s != value:
-                return self._parse_failure(accum, consumed=True)
+                return self._parse_failure(accum, iterator.position,
+                                           consumed=True)
         return self._parse_success([accum], consumed=True)
 
     @property
@@ -96,7 +97,7 @@ class EndOfFileParser(Parser):
             try:
                 value = next(iterator)
                 iterator.rewind_to(point)
-                return self._parse_failure(value)
+                return self._parse_failure(value, iterator.position)
             except StopIteration:
                 return self._parse_success([])
 
