@@ -23,16 +23,16 @@ class SatisfyParser(Parser):
         with iterator.rewind_point() as point:
             try:
                 initial = next(iterator)
-                value = initial
-                for step in self._steps:
-                    passes, value = step(value)
-                    if not passes:
-                        iterator.rewind_to(point)
-                        return self._parse_failure(initial, iterator.position)
-                return self._parse_success([value], consumed=True)
             except StopIteration:
                 iterator.rewind_to(point)
                 return self._parse_failure('end of input', iterator.position)
+            value = initial
+            for step in self._steps:
+                passes, value = step(value)
+                if not passes:
+                    iterator.rewind_to(point)
+                    return self._parse_failure(initial, iterator.position)
+            return self._parse_success([value], consumed=True)
 
     @property
     def expected(self):
