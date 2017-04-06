@@ -33,10 +33,7 @@ class AttemptParser(SingleChildParser):
 
 
 def _apply_to_varying(func, values):
-    if len(values) == 1:
-        return func(values[0])
-    else:
-        return func(*values)
+    return func(values[0]) if len(values) == 1 else func(*values)
 
 
 class MapParser(SingleChildParser):
