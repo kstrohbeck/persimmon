@@ -328,6 +328,7 @@ class RewindIterator(collections.Iterator):
         :return:
         """
         self.index = point.index
+        self._position = point.position
 
     def forget(self, point):
         """Forget a point.
