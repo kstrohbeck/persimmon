@@ -114,3 +114,21 @@ def test_position_increases_by_one_on_next(make_rewinder, position, expected):
     rewinder = make_rewinder(position)
     next(rewinder)
     assert rewinder._position.value == expected
+
+
+def test_make_rewind_point_does_not_affect_position(make_rewinder, position):
+    rewinder = make_rewinder(position)
+    next(rewinder)
+    pos = rewinder._position
+    with rewinder.rewind_point():
+        assert pos == rewinder._position
+
+
+def test_position_is_reset_after_rewind(make_rewinder, position):
+    rewinder = make_rewinder(position)
+    next(rewinder)
+    pos = rewinder._position
+    with rewinder.rewind_point() as point:
+        next(rewinder)
+        rewinder.rewind_to(point)
+        assert pos == rewinder._position
