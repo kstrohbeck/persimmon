@@ -19,7 +19,7 @@ class ParserFactory:
 
     def make_elem_parser(self, el):
         return (
-            self.make_satisfy_parser
+            self.make_satisfy_parser()
                 .filter(lambda e: e == el)
                 .noisy
                 .labeled(el)
@@ -33,7 +33,7 @@ class ParserFactory:
 
     def make_digit_parser(self):
         return (
-            self.make_satisfy_parser
+            self.make_satisfy_parser()
                 .filter(str.isdigit)
                 .map(int)
                 .labeled('digit')
