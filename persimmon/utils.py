@@ -259,6 +259,17 @@ class Position:
         raise NotImplementedError
 
 
+class BasicPosition(Position):
+    """Represents basic position information - just a number representing the
+    index of the element represented by the position.
+    """
+    def __init__(self, index=0):
+        self._index = index
+
+    def shift(self, value):
+        return BasicPosition(self._index + 1)
+
+
 class RewindIterator(collections.Iterator):
     """Wrapper around some backing type that provides standard iterator features
     as well as allowing for setting and deleting backtracking points.
