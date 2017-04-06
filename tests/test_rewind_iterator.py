@@ -103,7 +103,7 @@ def test_point_raises_if_lt_on_non_point(rewinder):
 ])
 def test_rewinder_starts_at_position_zero(make_rewinder, position, expected):
     rewinder = make_rewinder(position)
-    assert rewinder._position.value == expected
+    assert rewinder.position.value == expected
 
 
 @pytest.mark.parametrize(['position', 'expected'], [
@@ -113,22 +113,22 @@ def test_rewinder_starts_at_position_zero(make_rewinder, position, expected):
 def test_position_increases_by_one_on_next(make_rewinder, position, expected):
     rewinder = make_rewinder(position)
     next(rewinder)
-    assert rewinder._position.value == expected
+    assert rewinder.position.value == expected
 
 
 def test_make_rewind_point_does_not_affect_position(make_rewinder, position):
     rewinder = make_rewinder(position)
     next(rewinder)
-    pos = rewinder._position
+    pos = rewinder.position
     with rewinder.rewind_point():
-        assert pos == rewinder._position
+        assert pos == rewinder.position
 
 
 def test_position_is_reset_after_rewind(make_rewinder, position):
     rewinder = make_rewinder(position)
     next(rewinder)
-    pos = rewinder._position
+    pos = rewinder.position
     with rewinder.rewind_point() as point:
         next(rewinder)
         rewinder.rewind_to(point)
-        assert pos == rewinder._position
+        assert pos == rewinder.position

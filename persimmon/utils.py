@@ -333,6 +333,11 @@ class RewindIterator(collections.Iterator):
     def index(self, index):
         raise NotImplementedError
 
+    @property
+    def position(self):
+        """The position in the data the rewind iterator is currently at."""
+        return self._position
+
     def rewind_point(self):
         """Create a new rewind point at the current index.
 
