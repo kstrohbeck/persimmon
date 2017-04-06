@@ -245,6 +245,20 @@ class RewindPoint:
         return self._rewinder == other._rewinder and self.index < other.index
 
 
+class Position:
+    """Represents an abstract position in a stream of data. Positions are used
+    to report parsing errors to users.
+    """
+    def shift(self, value):
+        """Takes an element of the source iterator and adjusts the current
+        position.
+
+        :param value: the element read in by the iterator
+        :return: the position after shifting
+        """
+        raise NotImplementedError
+
+
 class RewindIterator(collections.Iterator):
     """Wrapper around some backing type that provides standard iterator features
     as well as allowing for setting and deleting backtracking points.
