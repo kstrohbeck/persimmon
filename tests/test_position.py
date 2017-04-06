@@ -3,6 +3,18 @@ import pytest
 from persimmon.utils import Position, BasicPosition, LinePosition
 
 
+def parametrize_line_position():
+    return pytest.mark.parametrize(['line', 'col'], [
+        (1, 0),
+        (0, 1),
+        (100, 100)
+    ])
+
+
+def parametrize_basic_position():
+    return pytest.mark.parametrize('index', [0, 1, 2, 10, 1000])
+
+
 def test_abstract_position_shift_raises():
     pos = Position()
     with pytest.raises(NotImplementedError):
@@ -15,69 +27,49 @@ def test_abstract_position_value_raises():
         _ = pos.value
 
 
-@pytest.mark.parametrize('index', [0, 1, 2, 10, 1000])
+@parametrize_basic_position()
 def test_basic_pos_value_is_index(index):
     pos = BasicPosition(index)
     assert pos.value == index
 
 
-@pytest.mark.parametrize(['line', 'col'], [
-    (1, 0),
-    (0, 1),
-    (100, 100)
-])
+@parametrize_line_position()
 def test_line_pos_value_is_line_and_col(line, col):
     pos = LinePosition(line, col)
     assert pos.value == (line, col)
 
 
-@pytest.mark.parametrize('index', [0, 1, 2, 10, 1000])
+@parametrize_basic_position()
 def test_basic_pos_shift_increases_by_one(index):
     pos = BasicPosition(index)
     assert pos.shift(None).value == index + 1
 
 
-@pytest.mark.parametrize(['line', 'col'], [
-    (1, 0),
-    (0, 1),
-    (100, 100)
-])
+@parametrize_line_position()
 def test_line_pos_shift_doesnt_affect_line_on_non_newline(line, col):
     pos = LinePosition(line, col)
     assert pos.shift(None).value[0] == line
 
 
-@pytest.mark.parametrize(['line', 'col'], [
-    (1, 0),
-    (0, 1),
-    (100, 100)
-])
+@parametrize_line_position()
 def test_line_pos_shift_increases_col_by_one_on_non_newline(line, col):
     pos = LinePosition(line, col)
     assert pos.shift(None).value[1] == col + 1
 
 
-@pytest.mark.parametrize(['line', 'col'], [
-    (1, 0),
-    (0, 1),
-    (100, 100)
-])
+@parametrize_line_position()
 def test_line_pos_shift_increases_line_by_one_on_newline(line, col):
     pos = LinePosition(line, col)
     assert pos.shift('\n').value[0] == line + 1
 
 
-@pytest.mark.parametrize(['line', 'col'], [
-    (1, 0),
-    (0, 1),
-    (100, 100)
-])
+@parametrize_line_position()
 def test_line_pos_shift_sets_col_to_zero_on_newline(line, col):
     pos = LinePosition(line, col)
     assert pos.shift('\n').value[1] == 0
 
 
-@pytest.mark.parametrize('index', [0, 1, 2, 10, 1000])
+@parametrize_basic_position()
 def test_basic_pos_repr_is_index(index):
     pos = BasicPosition(index)
     assert repr(pos) == repr(index)
