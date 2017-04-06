@@ -24,9 +24,9 @@ class Parser:
     def parse(self, data):
         iterator = self._parser_factory.make_rewind_iterator(data)
         res = self.do_parse(iterator)
-        if res.is_success:
-            return res.values[0] if len(res.values) == 1 else res.values
-        raise result.ParseError(str(res))
+        if not res.is_success:
+            raise result.ParseError(str(res))
+        return res.values[0] if len(res.values) == 1 else res.values
 
     def __or__(self, other):
         return self._parser_factory.combine_choice(self, other)
