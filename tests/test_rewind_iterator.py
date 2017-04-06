@@ -141,7 +141,7 @@ def test_position_is_reset_after_rewind(make_rewinder, position):
 
 
 def test_make_rewind_iterator_makes_stream_from_iterator():
-    rewinder = RewindIterator.make_rewind_iterator(range(1, 10))
+    rewinder = RewindIterator.make_rewind_iterator(iter('test data'))
     assert isinstance(rewinder, StreamRewindIterator)
 
 
