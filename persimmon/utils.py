@@ -304,7 +304,9 @@ class RewindIterator(collections.Iterator):
 
     def __next__(self):
         """Return the next element of the backing data."""
-        return self._next()
+        value = self._next()
+        self._position = self._position.shift(value)
+        return value
 
     def _next(self):
         """Internal method to fetch the next element."""
@@ -402,7 +404,6 @@ class StreamRewindIterator(RewindIterator):
         self._store.advance()
         if not self._points and self._store.is_at_end:
             self._store = Zipper()
-        self._position = self._position.shift(value)
         return value
 
     @property
@@ -449,7 +450,6 @@ class StaticRewindIterator(RewindIterator):
             raise StopIteration
         value = self._data[self._index]
         self._index += 1
-        self._position = self._position.shift(value)
         return value
 
     @property
