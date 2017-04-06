@@ -33,6 +33,8 @@ class AttemptParser(SingleChildParser):
 
 
 def _apply_to_varying(func, values):
+    # TODO: Maybe this should be in a class for "function-applying parsers?"
+    # TODO: Something like self.apply_func(values).
     return func(values[0]) if len(values) == 1 else func(*values)
 
 
