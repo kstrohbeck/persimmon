@@ -22,7 +22,7 @@ class Parser:
     def parse(self, data):
         iterator = self._parser_factory.make_rewind_iterator(data)
         res = self.do_parse(iterator)
-        if isinstance(result, result.Success):
+        if res.is_success:
             if len(res.values) == 1:
                 return res.values[0]
             return res.values
