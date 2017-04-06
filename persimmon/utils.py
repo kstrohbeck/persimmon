@@ -270,6 +270,20 @@ class BasicPosition(Position):
         return BasicPosition(self._index + 1)
 
 
+class LinePosition(Position):
+    """Represents standard file position information - which line the parser is
+    on and what character on that line.
+    """
+    def __init__(self, line=1, col=0):
+        self._line = line
+        self._col = col
+
+    def shift(self, value):
+        if value == '\n':
+            return LinePosition(self._line + 1, 0)
+        return LinePosition(self._line, self._col + 1)
+
+
 class RewindIterator(collections.Iterator):
     """Wrapper around some backing type that provides standard iterator features
     as well as allowing for setting and deleting backtracking points.
