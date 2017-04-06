@@ -33,3 +33,7 @@ class Failure(Result):
             'Unexpected "{}" at {}\n'
             'Expecting {}'
         ).format(self.unexpected, self.position, ', '.join(self.expected))
+
+
+class ParseError(Exception):
+    pass

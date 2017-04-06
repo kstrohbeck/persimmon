@@ -28,9 +28,7 @@ class Parser:
             if len(res.values) == 1:
                 return res.values[0]
             return res.values
-        print('Parsing failure: unexpected "{}" at {}'.format(res.unexpected,
-                                                            res.position))
-        print('Expected: {}'.format(', '.join(res.expected)))
+        raise result.ParseError(str(res))
 
     def __or__(self, other):
         return self._parser_factory.combine_choice(self, other)
