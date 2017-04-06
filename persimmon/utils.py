@@ -260,6 +260,10 @@ class Position:
         """
         raise NotImplementedError
 
+    @property
+    def value(self):
+        raise NotImplementedError
+
 
 class BasicPosition(Position):
     """Represents basic position information - just a number representing the
@@ -273,6 +277,10 @@ class BasicPosition(Position):
 
     def __repr__(self):
         return repr(self._index)
+
+    @property
+    def value(self):
+        return self._index
 
 
 class LinePosition(Position):
@@ -290,6 +298,10 @@ class LinePosition(Position):
 
     def __repr__(self):
         return 'line {}, column {}'.format(self._line, self._col)
+
+    @property
+    def value(self):
+        return self._line, self._col
 
 
 class RewindIterator(collections.Iterator):
