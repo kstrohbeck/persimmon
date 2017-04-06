@@ -32,6 +32,13 @@ class AttemptParser(SingleChildParser):
             return res
 
 
+def _apply_to_varying(func, values):
+    if len(values) == 1:
+        return func(values[0])
+    else:
+        return func(*values)
+
+
 class MapParser(SingleChildParser):
     def __init__(self, parser_factory, child, func):
         super().__init__(parser_factory, False, child)
@@ -40,10 +47,7 @@ class MapParser(SingleChildParser):
     def do_parse(self, iterator):
         res = super().do_parse(iterator)
         if res.is_success:
-            if len(res.values) == 1:
-                res.values = [self._func(res.values[0])]
-            else:
-                res.values = [self._func(*res.values)]
+            res.values = [_apply_to_varying(self._func, res.values)]
         return res
 
 
@@ -55,10 +59,7 @@ class FilterParser(SingleChildParser):
     def do_parse(self, iterator):
         res = super().do_parse(iterator)
         if res.is_success:
-            if len(res.values) == 1:
-                passes = self._pred(res.values[0])
-            else:
-                passes = self._pred(*res.values)
+            passes = _apply_to_varying(self._pred, res.values)
             if not passes:
                 return self._parse_failure('bad input', iterator.position,
                                            consumed=True)
@@ -77,10 +78,7 @@ class TransformParser(SingleChildParser):
     def do_parse(self, iterator):
         res = super().do_parse(iterator)
         if res.is_success:
-            if len(res.values) == 1:
-                new_value = self._transform(res.values[0])
-            else:
-                new_value = self._transform(*res.values)
+            new_value = _apply_to_varying(self._transform, res.values)
             if new_value is None:
                 return self._parse_failure('bad input', iterator.position,
                                            consumed=True)
