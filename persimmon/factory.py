@@ -26,10 +26,14 @@ class ParserFactory:
         )
 
     def make_one_of_parser(self, els):
-        return self.make_satisfy_parser.filter(lambda e: e in els).labeled(els)
+        return (
+            self.make_satisfy_parser()
+            .filter(lambda e: e in els)
+            .labeled(els)
+        )
 
     def make_none_of_parser(self, els):
-        return self.make_satisfy_parser.filter(lambda e: e not in els)
+        return self.make_satisfy_parser().filter(lambda e: e not in els)
 
     def make_digit_parser(self):
         return (
