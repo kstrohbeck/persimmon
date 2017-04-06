@@ -27,3 +27,9 @@ class Failure(Result):
     @property
     def is_success(self):
         return False
+
+    def __str__(self):
+        return (
+            'Unexpected "{}" at {}\n'
+            'Expecting {}'
+        ).format(self.unexpected, self.position, ', '.join(self.expected))
