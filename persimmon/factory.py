@@ -1,18 +1,12 @@
-from abc import abstractmethod
-
-
 class ParserFactory:
-    @abstractmethod
     def make_rewind_iterator(self, data):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def make_success_parser(self, value):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def make_satisfy_parser(self, steps=None):
-        pass
+        raise NotImplementedError
 
     def make_any_elem_parser(self):
         return self.make_satisfy_parser().labeled('any element')
@@ -43,17 +37,14 @@ class ParserFactory:
                 .labeled('digit')
         )
 
-    @abstractmethod
     def make_choice_parser(self, parsers):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def make_chain_parser(self, parsers):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def make_sequence_parser(self, seq):
-        pass
+        raise NotImplementedError
 
     def make_string_parser(self, string):
         return self.make_sequence_parser(string).map(''.join)
@@ -61,46 +52,35 @@ class ParserFactory:
     def make_default_parser(self, parser, value):
         return parser | self.make_success_parser(value)
 
-    @abstractmethod
     def make_eof_parser(self):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def make_attempt_parser(self, parser):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def make_map_parser(self, parser, func):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def make_filter_parser(self, parser, pred):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def make_transform_parser(self, parser, transform):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def combine_choice(self, left, right):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def combine_chain(self, left, right):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def make_repeat_parser(self, parser, min_results=0, max_results=None):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def make_labeled_parser(self, parser, label):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def make_noisy_parser(self, parser, noise):
-        pass
+        raise NotImplementedError
 
-    @abstractmethod
     def make_delayed_parser(self, parser_func):
-        pass
+        raise NotImplementedError
