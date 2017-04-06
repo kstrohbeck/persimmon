@@ -289,9 +289,10 @@ class RewindIterator(collections.Iterator):
     as well as allowing for setting and deleting backtracking points.
     """
 
-    def __init__(self):
+    def __init__(self, position=None):
         """Create a new rewind iterator."""
         self._points = []
+        self._position = position if position is not None else BasicPosition()
 
     def __next__(self):
         """Return the next element of the backing data."""
