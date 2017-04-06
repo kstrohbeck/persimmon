@@ -271,6 +271,9 @@ class BasicPosition(Position):
     def shift(self, value):
         return BasicPosition(self._index + 1)
 
+    def __repr__(self):
+        return repr(self._index)
+
 
 class LinePosition(Position):
     """Represents standard file position information - which line the parser is
@@ -285,6 +288,9 @@ class LinePosition(Position):
             return LinePosition(self._line + 1, 0)
         return LinePosition(self._line, self._col + 1)
 
+    def __repr__(self):
+        return 'line {}, column {}'.format(self._line, self._col)
+
 
 class RewindIterator(collections.Iterator):
     """Wrapper around some backing type that provides standard iterator features
@@ -298,6 +304,10 @@ class RewindIterator(collections.Iterator):
 
     def __next__(self):
         """Return the next element of the backing data."""
+        return self._next()
+
+    def _next(self):
+        """Internal method to fetch the next element."""
         raise NotImplementedError
 
     @property
@@ -381,7 +391,7 @@ class StreamRewindIterator(RewindIterator):
         self._iterator = iter(iterable)
         self._store = Zipper()
 
-    def __next__(self):
+    def _next(self):
         if self._store.is_at_end:
             value = next(self._iterator)
             if not self._points:
@@ -434,7 +444,7 @@ class StaticRewindIterator(RewindIterator):
         self._data = data
         self._index = 0
 
-    def __next__(self):
+    def _next(self):
         if self._index >= len(self._data):
             raise StopIteration
         value = self._data[self._index]
