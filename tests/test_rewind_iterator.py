@@ -1,6 +1,12 @@
 import pytest
 
-from persimmon.utils import RewindIterator, BasicPosition, LinePosition
+from persimmon.utils import (
+    RewindIterator,
+    StaticRewindIterator,
+    StreamRewindIterator,
+    BasicPosition,
+    LinePosition
+)
 
 
 def test_cant_next_abstract_rewind_iterator():
@@ -132,3 +138,18 @@ def test_position_is_reset_after_rewind(make_rewinder, position):
         next(rewinder)
         rewinder.rewind_to(point)
         assert pos == rewinder.position
+
+
+def test_make_rewind_iterator_makes_stream_from_iterator():
+    rewinder = RewindIterator.make_rewind_iterator(range(1, 10))
+    assert isinstance(rewinder, StreamRewindIterator)
+
+
+def test_make_rewind_iterator_makes_static_from_string():
+    rewinder = RewindIterator.make_rewind_iterator('test data')
+    assert isinstance(rewinder, StaticRewindIterator)
+
+
+def test_make_rewind_iterator_raises_on_anything_else():
+    with pytest.raises(Exception):
+        RewindIterator.make_rewind_iterator(None)
