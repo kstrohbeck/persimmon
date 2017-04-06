@@ -203,14 +203,16 @@ class Zipper:
 class RewindPoint:
     """Represents a point that a specific RewindIterator can be rewound to."""
 
-    def __init__(self, rewinder, index):
+    def __init__(self, rewinder, index, position):
         """Create a new rewind point.
 
         :param rewinder: the rewinder this point belongs to
         :param index: the index of the rewind point
+        :param position: the position the rewind happened at
         """
         self._rewinder = rewinder
         self.index = index
+        self.position = position
 
     def __enter__(self):
         """Called when the rewind point is created in a with statement.
@@ -245,17 +247,81 @@ class RewindPoint:
         return self._rewinder == other._rewinder and self.index < other.index
 
 
+class Position:
+    """Represents an abstract position in a stream of data. Positions are used
+    to report parsing errors to users.
+    """
+    def shift(self, value):
+        """Takes an element of the source iterator and adjusts the current
+        position.
+
+        :param value: the element read in by the iterator
+        :return: the position after shifting
+        """
+        raise NotImplementedError
+
+    @property
+    def value(self):
+        raise NotImplementedError
+
+
+class BasicPosition(Position):
+    """Represents basic position information - just a number representing the
+    index of the element represented by the position.
+    """
+    def __init__(self, index=0):
+        self._index = index
+
+    def shift(self, value):
+        return BasicPosition(self._index + 1)
+
+    def __repr__(self):
+        return repr(self._index)
+
+    @property
+    def value(self):
+        return self._index
+
+
+class LinePosition(Position):
+    """Represents standard file position information - which line the parser is
+    on and what character on that line.
+    """
+    def __init__(self, line=1, col=0):
+        self._line = line
+        self._col = col
+
+    def shift(self, value):
+        if value == '\n':
+            return LinePosition(self._line + 1, 0)
+        return LinePosition(self._line, self._col + 1)
+
+    def __repr__(self):
+        return 'line {}, column {}'.format(self._line, self._col)
+
+    @property
+    def value(self):
+        return self._line, self._col
+
+
 class RewindIterator(collections.Iterator):
     """Wrapper around some backing type that provides standard iterator features
     as well as allowing for setting and deleting backtracking points.
     """
 
-    def __init__(self):
+    def __init__(self, position=None):
         """Create a new rewind iterator."""
         self._points = []
+        self._position = position if position is not None else BasicPosition()
 
     def __next__(self):
         """Return the next element of the backing data."""
+        value = self._next()
+        self._position = self._position.shift(value)
+        return value
+
+    def _next(self):
+        """Internal method to fetch the next element."""
         raise NotImplementedError
 
     @property
@@ -267,6 +333,11 @@ class RewindIterator(collections.Iterator):
     def index(self, index):
         raise NotImplementedError
 
+    @property
+    def position(self):
+        """The position in the data the rewind iterator is currently at."""
+        return self._position
+
     def rewind_point(self):
         """Create a new rewind point at the current index.
 
@@ -275,7 +346,7 @@ class RewindIterator(collections.Iterator):
 
         :return: the rewind point
         """
-        point = RewindPoint(self, self.index)
+        point = RewindPoint(self, self.index, self._position)
         self._points.append(point)
         return point
 
@@ -286,6 +357,7 @@ class RewindIterator(collections.Iterator):
         :return:
         """
         self.index = point.index
+        self._position = point.position
 
     def forget(self, point):
         """Forget a point.
@@ -327,18 +399,18 @@ class StreamRewindIterator(RewindIterator):
     before the first rewind point can be deleted at any time.
     """
 
-    def __init__(self, iterable):
+    def __init__(self, iterable, position=None):
         """Create a new stream rewind iterator.
 
         The iterable has to support either __iter__ or __next__.
 
         :param iterable: the iterable stream to wrap
         """
-        super().__init__()
+        super().__init__(position)
         self._iterator = iter(iterable)
         self._store = Zipper()
 
-    def __next__(self):
+    def _next(self):
         if self._store.is_at_end:
             value = next(self._iterator)
             if not self._points:
@@ -379,18 +451,18 @@ class StaticRewindIterator(RewindIterator):
     supported.
     """
 
-    def __init__(self, data):
+    def __init__(self, data, position=None):
         """Creates a new static rewind iterator.
 
         data must be indexable - it has to have __getitem__ defined.
 
         :param data: the data to iterate over
         """
-        super().__init__()
+        super().__init__(position)
         self._data = data
         self._index = 0
 
-    def __next__(self):
+    def _next(self):
         if self._index >= len(self._data):
             raise StopIteration
         value = self._data[self._index]
