@@ -394,14 +394,14 @@ class StreamRewindIterator(RewindIterator):
     before the first rewind point can be deleted at any time.
     """
 
-    def __init__(self, iterable):
+    def __init__(self, iterable, position=None):
         """Create a new stream rewind iterator.
 
         The iterable has to support either __iter__ or __next__.
 
         :param iterable: the iterable stream to wrap
         """
-        super().__init__()
+        super().__init__(position)
         self._iterator = iter(iterable)
         self._store = Zipper()
 
@@ -446,14 +446,14 @@ class StaticRewindIterator(RewindIterator):
     supported.
     """
 
-    def __init__(self, data):
+    def __init__(self, data, position=None):
         """Creates a new static rewind iterator.
 
         data must be indexable - it has to have __getitem__ defined.
 
         :param data: the data to iterate over
         """
-        super().__init__()
+        super().__init__(position)
         self._data = data
         self._index = 0
 
