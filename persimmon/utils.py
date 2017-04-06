@@ -203,14 +203,16 @@ class Zipper:
 class RewindPoint:
     """Represents a point that a specific RewindIterator can be rewound to."""
 
-    def __init__(self, rewinder, index):
+    def __init__(self, rewinder, index, position):
         """Create a new rewind point.
 
         :param rewinder: the rewinder this point belongs to
         :param index: the index of the rewind point
+        :param position: the position the rewind happened at
         """
         self._rewinder = rewinder
         self.index = index
+        self.position = position
 
     def __enter__(self):
         """Called when the rewind point is created in a with statement.
@@ -315,7 +317,7 @@ class RewindIterator(collections.Iterator):
 
         :return: the rewind point
         """
-        point = RewindPoint(self, self.index)
+        point = RewindPoint(self, self.index, self._position)
         self._points.append(point)
         return point
 
