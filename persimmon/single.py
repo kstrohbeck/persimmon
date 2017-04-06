@@ -23,13 +23,13 @@ class AttemptParser(SingleChildParser):
         with iterator.rewind_point() as point:
             try:
                 res = super().do_parse(iterator)
-                if not res.is_success:
-                    iterator.rewind_to(point)
-                res.consumed = False
-                return res
             except StopIteration:
                 iterator.rewind_to(point)
                 return self._parse_failure('end of input', iterator.position)
+            if not res.is_success:
+                iterator.rewind_to(point)
+            res.consumed = False
+            return res
 
 
 class MapParser(SingleChildParser):
