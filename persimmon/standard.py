@@ -9,8 +9,9 @@ class StandardParserFactory(ParserFactory):
     def make_success_parser(self, value):
         return primitive.SuccessParser(self, value)
 
-    def make_satisfy_parser(self):
-        return primitive.SatisfyParser(self, [])
+    def make_satisfy_parser(self, steps=None):
+        steps = steps if steps is not None else []
+        return primitive.SatisfyParser(self, steps)
 
     def make_choice_parser(self, parsers):
         return multi.ChoiceParser(self, parsers)

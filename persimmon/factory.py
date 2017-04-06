@@ -11,7 +11,7 @@ class ParserFactory:
         pass
 
     @abstractmethod
-    def make_satisfy_parser(self):
+    def make_satisfy_parser(self, steps=None):
         pass
 
     def make_any_elem_parser(self):
