@@ -1,0 +1,102 @@
+# ERRORS TO HANDLE
+
+# if we do:
+
+def parens(elem):
+    return string('(') & elem & string(')')
+
+def brackets(elem):
+    return string('[') & elem & string(']')
+
+wrapped = (parens(digit) | brackets(digit))
+
+wrapped.parse('[1)')
+
+# we get
+
+Parsing failure: unexpected [')']
+Expected: (, ]
+
+# what is that '(' doing in the expected output?
+# also, why is unexpected a list?
+# if we do
+
+wrapped.parse('[a(')
+
+# we get
+
+Parsing failure: unexpected a
+Expected: (, digit
+
+# that '(' is still there...
+
+# Idea: is it that the left paren is the first set for the choice?
+# It should hopefully understand that the first choice has been committed.
+
+# If we do:
+
+def braces(elem):
+    return string('{') & elem & string('}')
+
+wrapped_2 = (braces(digit) | brackets(digit))
+
+wrapped_2.parse('[1)')
+
+# we get
+
+Parsing failure: unexpected a
+Expected: {, digit
+
+# so it looks like it is the choice not commiting.
+
+
+# ALSO
+
+string('hi').parse('he')
+
+# we get
+
+Parsing failure: unexpected ['h', 'e']
+
+# should be he, probably isn't due to moving to sequence w/ map
+
+We'd like as little clutter as possible.
+
+
+
+def between(self, left, right):
+    return parser(
+        left,
+        ('value', self),
+        right,
+        lambda value: success(value)
+    )
+
+
+Chain(left, Chain(('value', self), Chain(right, Final(lambda value: success(value)))))
+
+
+
+
+Any given chain requires a context pass-in. At the top level, we pass in an
+empty context.
+
+Idea: transform a parser into a Context parser, which takes a context, parses and returns a new context.
+
+
+
+contextual(ctx, parser, 'value').bind(lambda ctx: ...)
+
+
+parser.map(lambda x: cpyctx.copy()[]))
+
+
+
+left.then(self.bind(lambda value: right.then(success(value))))
+
+
+to introduce a value, we should be able to do something like:
+
+success({}).bind(lambda ctx: parser)
+
+so parser can freely use ctx.
