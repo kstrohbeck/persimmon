@@ -1,24 +1,28 @@
 persimmon
 =========
 
+A Python parser combinator library.
+
 Samples
 -------
 
 .. code:: python
 
-  from persimmon.dsl import string, none_of, eol, eof
+  from persimmon import string, none_of
 
-  comma = string(',')
+  comma = string(",")
   elem = none_of(comma).many
   line = elem.many_sep_by(comma)
+  eol = string("\n")
   csv = (line + eol).many + eof
 
   def main():
-      content = '\n'.join(
-          'a,b,c',
-          '',
-          ',hello world,'
-      )
+      content = """\
+  a,b,c
+  
+  ,hello world,
+  """
+  
       values = csv.parse(content)
 
       # values = [
